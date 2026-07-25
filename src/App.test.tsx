@@ -258,13 +258,23 @@ describe('App', () => {
     expect(isRevealed(section)).toBe(true)
   })
 
-  it('mounts one backdrop layer per rank that has art, with exactly one active', () => {
+  it('mounts one backdrop layer per rank that has art, plus the focus layer', () => {
     const { container } = render(<App />)
-    const layers = container.querySelectorAll('.backdrop__layer')
-    expect(layers).toHaveLength(Object.keys(tierArt).length)
-    expect(container.querySelectorAll('.backdrop__layer.is-active')).toHaveLength(
-      tierArt.living ? 1 : 0
-    )
+    const tierLayers = container.querySelectorAll('.backdrop__layer:not(.backdrop__layer--focus)')
+    expect(tierLayers).toHaveLength(Object.keys(tierArt).length)
+    // The focus layer is always mounted so leaving a card fades out instead of cutting.
+    expect(container.querySelectorAll('.backdrop__layer--focus')).toHaveLength(1)
+    expect(container.querySelectorAll('.backdrop__layer:not(.backdrop__layer--focus).is-active'))
+      .toHaveLength(tierArt.living ? 1 : 0)
+  })
+
+  it('leaves the focus layer inert until a card is hovered', () => {
+    const { container } = render(<App />)
+    const focus = container.querySelector('.backdrop__layer--focus') as HTMLElement
+    expect(focus.classList.contains('is-active')).toBe(false)
+    expect(container.querySelector('.backdrop')?.classList.contains('is-focused')).toBe(false)
+    // No image is set until something is hovered, so nothing is fetched up front.
+    expect(focus.style.backgroundImage).toBe('')
   })
 
   it('hides the backdrop from assistive tech', () => {

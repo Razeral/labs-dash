@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { TierSection } from './components/TierSection'
 import { EditBar } from './components/EditBar'
 import { Backdrop } from './components/Backdrop'
+import { Hero } from './components/Hero'
 import type { CopyState } from './components/EditBar'
 import { readOverrides, writeOverride, clearOverrides, applyOverrides, exportRoster } from './overrides'
 import { isEditEnabled } from './auth'
@@ -20,6 +21,7 @@ export const App = () => {
   const [overrides, setOverrides] = useState(() => readOverrides())
   const [copyState, setCopyState] = useState<CopyState>('idle')
   const [activeTier, setActiveTier] = useState<Tier>('living')
+  const [hoverArt, setHoverArt] = useState<string | null>(null)
   const dragged = useRef<string | null>(null)
   const copyTimer = useRef<number | null>(null)
 
@@ -53,6 +55,30 @@ export const App = () => {
     () => Object.fromEntries(roster.filter((p) => p.host).map((p) => [p.slug, p.host as string])),
     []
   )
+
+  // Hovering a card floods the whole backdrop with that project's art. Deliberately a
+  // SEPARATE listener from the cursor-glow effect below: that one is suppressed under
+  // reduced-motion, but this is a content reveal rather than motion, and suppressing it
+  // would hide the art from exactly the people least likely to go hunting for it. It is
+  // still gated on a real hover-capable pointer, since there is no hover to leave on touch.
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return
+    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
+    const board = document.querySelector('.board')
+    if (!board) return
+    const onOver = (event: Event) => {
+      const card = (event.target as Element)?.closest?.('.card') as HTMLElement | null
+      const slug = card?.dataset.slug
+      setHoverArt(slug && artBySlug[slug] ? artBySlug[slug] : null)
+    }
+    const onLeave = () => setHoverArt(null)
+    board.addEventListener('pointerover', onOver)
+    board.addEventListener('pointerleave', onLeave)
+    return () => {
+      board.removeEventListener('pointerover', onOver)
+      board.removeEventListener('pointerleave', onLeave)
+    }
+  }, [artBySlug])
 
   // Which rank owns the backdrop. A second observer with a narrow band around the viewport's
   // middle means exactly one section is "current" at a time, so the backdrop crossfades as a
@@ -191,12 +217,10 @@ export const App = () => {
   }
 
   return (
-    <main className="board">
-      <Backdrop active={activeTier} />
-      <header className="board__header">
-        <h1 className="board__title">The Labs</h1>
-        <p className="board__sub">A bestiary of {roster.length} works, ranked by vitality.</p>
-      </header>
+    <>
+      <Backdrop active={activeTier} focus={hoverArt} />
+      <Hero count={roster.length} />
+      <main className="board">
 
       {editing && (
         <EditBar
@@ -220,6 +244,7 @@ export const App = () => {
           onDrop={handleDrop}
         />
       ))}
-    </main>
+      </main>
+    </>
   )
 }

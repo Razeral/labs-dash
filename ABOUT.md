@@ -104,6 +104,28 @@ once and only opacity animates, keeping it on the compositor; swapping one eleme
 `background-image` would flash while the new image decoded. Active opacity is 0.14 under a
 vignette. A rank with no image contributes no layer and falls back to plain ground.
 
+### The door
+
+`src/assets/hero/door.jpg` fills a `100dvh` hero above the board — arriving at the site means
+arriving at a threshold, not at a list. It is a **sibling of `.board`, not a child**: `.board` is
+a centred `max-width` column and no negative margin can bleed a child to the viewport edges.
+The title sits in the frame's dark negative space above the door's bright central seam, and the
+scrim fades to `--ground` at the bottom so the first rank emerges from the scene.
+
+### Hover flood
+
+Hovering a card with art crossfades the whole backdrop to that project's scene at 0.55 opacity,
+so the art gets the full viewport while the board stays exactly where it was. It is a **separate
+listener** from the cursor-glow effect: that one is suppressed under `prefers-reduced-motion`,
+but this is a content reveal rather than motion, and suppressing it would hide the art from
+exactly the people least likely to hunt for it. Gated on a real hover-capable pointer.
+
+While focused the vignette **relaxes** rather than tightens. Nothing legible sits on the raw
+backdrop — `.tier__header` is an opaque `--ground` bar carrying both the lore and the realm
+count, and every card is opaque — so there is no contrast to protect and a heavy scrim only
+strangles the art. The first version darkened to ~0.75 composite and left the flood at ~9%
+effective opacity, i.e. invisible.
+
 ## Drag-and-drop re-tiering
 
 Owner-only. **The trigger is `https://labs.ai.tech.gov.sg/#edit` — a fragment, not a query
