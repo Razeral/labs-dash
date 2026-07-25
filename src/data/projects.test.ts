@@ -1,9 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import projects from './projects.json'
+import raw from './projects.json'
+import { roster as rendered, omit } from './roster'
 import { TIERS } from '../types'
-import type { Project } from '../types'
+import type { Roster } from '../types'
 
-const roster = projects as Project[]
+const file = raw as Roster
+const roster = file.projects
 
 describe('projects.json', () => {
   it('has 49 entries', () => {
@@ -54,6 +56,19 @@ describe('projects.json', () => {
       const target = p.absorbedInto?.slug
       if (target) expect(slugs.has(target)).toBe(true)
     }
+  })
+
+  it('only omits slugs that actually exist (typo guard)', () => {
+    const slugs = new Set(roster.map((p) => p.slug))
+    for (const slug of omit) expect(slugs.has(slug)).toBe(true)
+  })
+
+  it('keeps omitted projects in the file but off the rendered roster', () => {
+    for (const slug of omit) {
+      expect(roster.find((p) => p.slug === slug)).toBeDefined()
+      expect(rendered.find((p) => p.slug === slug)).toBeUndefined()
+    }
+    expect(rendered).toHaveLength(roster.length - omit.length)
   })
 
   it('does not list labs-dash itself', () => {

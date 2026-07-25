@@ -60,7 +60,12 @@ nowhere to go, so the affordance must not suggest otherwise.
 
 ## Data
 
-`src/data/projects.json`, 49 entries — every directory under `Terra/projects/` whose `.git` is a
+`src/data/projects.json` holds two sections: **`omit`** (slugs to keep off the board — the entry
+stays in the file so nothing is lost, it just doesn't render) and **`projects`** (49 entries,
+sorted by tier then name so the file reads as the tier list itself). Moving a project between
+ranks is a one-word change to its `tier`. See `CLAUDE.md` for the editing rules.
+
+The roster is every directory under `Terra/projects/` whose `.git` is a
 **directory**, excluding `labs-dash` itself, plus one hosted-but-repoless entry (`analytics`).
 
 Seeded by `scripts/seed-roster.mjs` from commit recency + hosting, then corrected by hand. The

@@ -89,7 +89,7 @@ describe('overrides', () => {
 
   it('exports valid JSON with overrides applied', () => {
     const json = exportRoster(seed, { a: 'risen' })
-    const parsed = JSON.parse(json) as Project[]
+    const parsed = (JSON.parse(json) as { omit: string[]; projects: Project[] }).projects
     expect(parsed.find((p) => p.slug === 'a')?.tier).toBe('risen')
     expect(json.endsWith('\n')).toBe(true)
   })
@@ -97,11 +97,11 @@ describe('overrides', () => {
   it('exports a roster that still satisfies ascended-iff-absorbedInto', () => {
     // The exported JSON is pasted back into src/data/projects.json, so any override
     // combination has to leave the file passing its own data tests.
-    expectAscendedIffAbsorbedInto(JSON.parse(exportRoster(seed, {})) as Project[])
-    expectAscendedIffAbsorbedInto(JSON.parse(exportRoster(seed, { c: 'living' })) as Project[])
-    expectAscendedIffAbsorbedInto(JSON.parse(exportRoster(seed, { c: 'fallen', a: 'risen' })) as Project[])
+    expectAscendedIffAbsorbedInto((JSON.parse(exportRoster(seed, {})) as { omit: string[]; projects: Project[] }).projects)
+    expectAscendedIffAbsorbedInto((JSON.parse(exportRoster(seed, { c: 'living' })) as { omit: string[]; projects: Project[] }).projects)
+    expectAscendedIffAbsorbedInto((JSON.parse(exportRoster(seed, { c: 'fallen', a: 'risen' })) as { omit: string[]; projects: Project[] }).projects)
     for (const tier of TIERS) {
-      expectAscendedIffAbsorbedInto(JSON.parse(exportRoster(seed, { c: tier, a: tier, b: tier })) as Project[])
+      expectAscendedIffAbsorbedInto((JSON.parse(exportRoster(seed, { c: tier, a: tier, b: tier })) as { omit: string[]; projects: Project[] }).projects)
     }
   })
 })

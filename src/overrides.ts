@@ -63,5 +63,11 @@ export const applyOverrides = (projects: Project[], overrides: TierOverrides): P
     return { ...rest, tier }
   })
 
-export const exportRoster = (projects: Project[], overrides: TierOverrides): string =>
-  JSON.stringify(applyOverrides(projects, overrides), null, 2) + '\n'
+// Emits the FULL file shape, not a bare array, so pasting the output back into
+// src/data/projects.json preserves the omit list instead of silently discarding it.
+export const exportRoster = (
+  projects: Project[],
+  overrides: TierOverrides,
+  omit: readonly string[] = []
+): string =>
+  JSON.stringify({ omit: [...omit], projects: applyOverrides(projects, overrides) }, null, 2) + '\n'

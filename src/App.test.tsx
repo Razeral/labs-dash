@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { App } from './App'
 import { STORAGE_KEY } from './overrides'
 import { TIERS, TIER_META } from './types'
+import { roster, allProjects } from './data/roster'
 import type { Project } from './types'
 import { FakeIntersectionObserver } from './test-setup'
 import * as auth from './auth'
@@ -31,7 +32,7 @@ describe('App', () => {
 
   it('renders every project as a card', () => {
     const { container } = render(<App />)
-    expect(container.querySelectorAll('.card')).toHaveLength(49)
+    expect(container.querySelectorAll('.card')).toHaveLength(roster.length)
   })
 
   it('hides the edit bar by default', () => {
@@ -128,7 +129,7 @@ describe('App', () => {
 
     fireEvent.click(screen.getByText(/copy projects.json/i))
     await screen.findByText(/^copied$/i)
-    const payload = JSON.parse(writeText.mock.calls[0][0] as string) as Project[]
+    const payload = (JSON.parse(writeText.mock.calls[0][0] as string) as { omit: string[]; projects: Project[] }).projects as Project[]
 
     // The exported roster is pasted back into src/data/projects.json, so it must still pass
     // the ascended-iff-absorbedInto invariant that projects.test.ts enforces there.
@@ -147,7 +148,7 @@ describe('App', () => {
       throw new Error('The operation is insecure.')
     })
     const { container } = render(<App />)
-    expect(container.querySelectorAll('.card')).toHaveLength(49)
+    expect(container.querySelectorAll('.card')).toHaveLength(roster.length)
     expect(container.querySelectorAll('.tier')).toHaveLength(5)
   })
 
@@ -169,9 +170,9 @@ describe('App', () => {
 
     await screen.findByText(/^copied$/i)
     expect(writeText).toHaveBeenCalledTimes(1)
-    const payload = JSON.parse(writeText.mock.calls[0][0] as string)
-    expect(payload).toHaveLength(49)
-    expect(payload.find((p: { slug: string }) => p.slug === 'govbrain').tier).toBe('fallen')
+    const payload = (JSON.parse(writeText.mock.calls[0][0] as string) as { omit: string[]; projects: Project[] }).projects
+    expect(payload).toHaveLength(allProjects.length)
+    expect(payload.find((p) => p.slug === 'govbrain')?.tier).toBe('fallen')
   })
 
   it('shows a failed state when the clipboard write rejects, without throwing', async () => {

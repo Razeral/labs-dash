@@ -17,6 +17,13 @@ export type Project = {
 
 export type TierOverrides = Record<string, Tier>
 
+// The shape of src/data/projects.json. `omit` holds slugs to keep off the board entirely —
+// the entry stays in `projects` so its blurb and tier survive, it just doesn't render.
+export type Roster = {
+  omit: string[]
+  projects: Project[]
+}
+
 export const TIERS: Tier[] = ['living', 'ascended', 'dormant', 'risen', 'fallen']
 
 // The Ascended is the one rank a drag cannot produce. Ascending means being absorbed into a

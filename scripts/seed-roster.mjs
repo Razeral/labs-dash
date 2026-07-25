@@ -9,7 +9,7 @@
 //   TODAY — frozen so tier seeding is reproducible. Left alone, every repo ages relative to
 //           2026-07-25 rather than to now, so the living/dormant/fallen cutoffs drift.
 import { execSync } from 'node:child_process'
-import { readdirSync, statSync, writeFileSync } from 'node:fs'
+import { readdirSync, statSync, writeFileSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const ROOT = '/Users/aip/Code/Terra/projects'
@@ -72,5 +72,23 @@ rows.push({
   note: 'No matching repo in projects/. Untouched since 2026-06-10.'
 })
 
-writeFileSync('src/data/projects.json', JSON.stringify(rows, null, 2) + '\n')
-console.log(`wrote ${rows.length} projects`)
+// Preserve the hand-maintained omit list and any hand-written blurbs/names across a re-seed.
+// Regenerating must never silently un-omit something or throw away curated copy.
+const TIER_ORDER = { living: 0, ascended: 1, dormant: 2, risen: 3, fallen: 4 }
+let prev = { omit: [], projects: [] }
+try {
+  prev = JSON.parse(readFileSync('src/data/projects.json', 'utf8'))
+} catch {
+  // first run — no existing file
+}
+const prevBySlug = new Map((prev.projects ?? []).map((p) => [p.slug, p]))
+const merged = rows.map((row) => {
+  const old = prevBySlug.get(row.slug)
+  if (!old) return row
+  // Keep curated fields; let the generator refresh only what it derives.
+  return { ...row, name: old.name ?? row.name, blurb: old.blurb ?? row.blurb, tier: old.tier ?? row.tier, ...(old.absorbedInto ? { absorbedInto: old.absorbedInto } : {}), ...(old.note ? { note: old.note } : {}) }
+})
+merged.sort((a, b) => TIER_ORDER[a.tier] - TIER_ORDER[b.tier] || a.name.toLowerCase().localeCompare(b.name.toLowerCase()))
+const out = { omit: prev.omit ?? [], projects: merged }
+writeFileSync('src/data/projects.json', JSON.stringify(out, null, 2) + '\n')
+console.log(`wrote ${merged.length} projects (${out.omit.length} omitted)`)

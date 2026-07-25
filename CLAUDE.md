@@ -15,9 +15,39 @@ cost time. This file is only how to act in it.
 - Use the tokens in `src/styles/tokens.css`. Do not hardcode a value that duplicates one; use
   `color-mix(in srgb, var(--token) N%, transparent)` rather than restating a hex as `rgba()`.
 
+## Editing the tier list
+
+`src/data/projects.json` is the whole interface. It has two sections:
+
+```json
+{
+  "omit": ["sandbox", "vendor"],
+  "projects": [
+    { "slug": "govbrain", "name": "GovBrain", "blurb": "…", "tier": "living", "host": "https://…" }
+  ]
+}
+```
+
+- **Move a project between ranks** — change its `"tier"` to one of
+  `living` · `ascended` · `dormant` · `risen` · `fallen`. That is the whole edit.
+- **Take a project off the board** — add its slug to `"omit"`. The entry stays in `projects`, so
+  its blurb, tier and notes are not lost; it simply stops rendering, and the realm counts and the
+  "bestiary of N works" subtitle both follow automatically.
+- **Promote to Ascended** — set `"tier": "ascended"` *and* add
+  `"absorbedInto": { "name": "Compliance API Dashboard", "slug": "compliance-api-dashboard" }`.
+  The `slug` is optional and only needed when the successor is itself on the board; with it, the
+  card links through to the successor's host. A test enforces ascended-iff-`absorbedInto`.
+
+`projects` is sorted by tier then name so the file reads top-to-bottom as the tier list itself.
+Nothing depends on that order — the app groups by `tier` — so a re-sort is cosmetic.
+
+Then: `npx vitest run` (the data tests catch a bad tier, a duplicate slug, an over-long blurb, an
+unparseable host, an omit entry that matches no project, and a fallen entry with a live link),
+then `bash scripts/deploy.sh`.
+
 ## Adding or changing a project card
 
-1. Edit `src/data/projects.json`. Blurbs come from the project's own `ABOUT.md`, falling back to
+1. Edit `src/data/projects.json` (the `projects` array). Blurbs come from the project's own `ABOUT.md`, falling back to
    `README.md`, **≤100 characters** (a test enforces it).
 2. **Never invent a description.** If a repo has nothing sourceable, use
    `No description recorded.` plus a factual `note`. Seven entries are in that state — inventing
@@ -29,10 +59,11 @@ cost time. This file is only how to act in it.
    **The Ascended is the one rank that is not a drop target** (`acceptsDrop` in `src/types.ts`) —
    promoting something to it is a hand edit. Dragging a card *out* of it strips `absorbedInto`.
 5. Run `npx vitest run` — the data tests catch length, duplicate slugs, bad tiers, unparseable
-   hosts, and fallen entries carrying live links.
+   hosts, omit entries matching no project, and fallen entries carrying live links.
 
-To re-derive the roster from scratch: `node scripts/seed-roster.mjs`, then refill names and blurbs
-by hand (the generator deliberately leaves them empty). It requires `.git` to be a **directory** —
+To re-derive the roster: `node scripts/seed-roster.mjs`. It is **non-destructive** — it re-scans
+disk for new/removed repos but preserves your `omit` list and any hand-written `name`, `blurb`,
+`tier`, `absorbedInto` and `note`. Only genuinely new projects arrive with an empty blurb. It requires `.git` to be a **directory** —
 do not relax that to `existsSync`, which picks up `continuum-plan2`'s worktree pointer.
 
 ## Shipping

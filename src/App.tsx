@@ -5,12 +5,11 @@ import type { CopyState } from './components/EditBar'
 import { readOverrides, writeOverride, clearOverrides, applyOverrides, exportRoster } from './overrides'
 import { isEditEnabled } from './auth'
 import { TIERS, acceptsDrop } from './types'
-import type { Project, Tier } from './types'
-import seed from './data/projects.json'
+import type { Tier } from './types'
+import { roster, allProjects, omit } from './data/roster'
 import './styles/tokens.css'
 import './styles/app.css'
 
-const roster = seed as Project[]
 const OWNER = import.meta.env.VITE_OWNER_EMAIL ?? ''
 const COPY_STATUS_TIMEOUT_MS = 2000
 
@@ -145,7 +144,7 @@ export const App = () => {
       flashCopyState('failed')
       return
     }
-    navigator.clipboard.writeText(exportRoster(roster, overrides))
+    navigator.clipboard.writeText(exportRoster(allProjects, overrides, omit))
       .then(() => flashCopyState('copied'))
       .catch(() => flashCopyState('failed'))
   }
