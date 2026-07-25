@@ -1,330 +1,227 @@
 {
-  "omit": [],
+  "omit": [
+    "bootstrap-mcp",
+    "candidate-code-review"
+  ],
   "projects": [
-    {
+    { "name": "AIAP FinOps", "tier": "living",
       "slug": "aiap-finops",
-      "name": "AIAP FinOps",
-      "blurb": "AWS cost attribution and tagging-gap audit for the AIAP account",
-      "tier": "living"
+      "blurb": "AWS cost attribution and tagging-gap audit for the AIAP account"
     },
-    {
+    { "name": "Bootstrap MCP", "tier": "living",
       "slug": "bootstrap-mcp",
-      "name": "Bootstrap MCP",
-      "blurb": "Bootstrap scaffolding for MCP servers",
-      "tier": "living"
+      "blurb": "Bootstrap scaffolding for MCP servers"
     },
-    {
+    { "name": "Candidate Code Review", "tier": "living",
       "slug": "candidate-code-review",
-      "name": "Candidate Code Review",
-      "blurb": "Code-review exercise harness for candidates",
-      "tier": "living"
+      "blurb": "Code-review exercise harness for candidates"
     },
-    {
+    { "name": "Compliance API Dashboard", "tier": "living",
       "slug": "compliance-api-dashboard",
-      "name": "Compliance API Dashboard",
       "blurb": "Dashboard over the ChatGPT Enterprise Compliance API — inventory, logs, run traces",
-      "tier": "living",
       "host": "https://compliance-api.labs.ai.tech.gov.sg"
     },
-    {
+    { "name": "Continuum", "tier": "living",
       "slug": "continuum",
-      "name": "Continuum",
       "blurb": "Vibing platform for existing repos. Click \"Continue building\", ship via MR",
-      "tier": "living",
       "host": "https://continuum.labs.ai.tech.gov.sg"
     },
-    {
+    { "name": "Depot", "tier": "living",
       "slug": "depot",
-      "name": "Depot",
       "blurb": "Sovereign curated model registry. A gov fork of HuggingFace, signed end to end",
-      "tier": "living",
       "host": "https://stg.depot.ai.tech.gov.sg"
     },
-    {
+    { "name": "Ducks", "tier": "living",
       "slug": "ducks",
-      "name": "Ducks",
       "blurb": "Static slide-deck catalog. Two deploy paths — the site and the Lambda ship apart",
-      "tier": "living",
       "host": "https://ducks.ai.tech.gov.sg"
     },
-    {
+    { "name": "Editor Frontpage", "tier": "living",
       "slug": "editor-frontpage",
-      "name": "Editor Frontpage",
       "blurb": "The deskboard front page",
-      "tier": "living",
       "host": "https://deskboard.ai.tech.gov.sg"
     },
-    {
+    { "name": "Fleet", "tier": "living",
       "slug": "fleet",
-      "name": "Fleet",
-      "blurb": "Cockpit for launching and tracking Claude sessions across projects",
-      "tier": "living"
+      "blurb": "Cockpit for launching and tracking Claude sessions across projects"
     },
-    {
+    { "name": "Fleet3D", "tier": "living",
       "slug": "fleet3d",
-      "name": "Fleet3D",
-      "blurb": "Three-dimensional view of the fleet",
-      "tier": "living"
+      "blurb": "Three-dimensional view of the fleet"
     },
-    {
+    { "name": "Fueler", "tier": "living",
       "slug": "fueler",
-      "name": "Fueler",
-      "blurb": "Telegram bot that OCRs fuel-receipt photos and appends rows to a Google Sheet",
-      "tier": "living"
+      "blurb": "Telegram bot that OCRs fuel-receipt photos and appends rows to a Google Sheet"
     },
-    {
+    { "name": "Google Workspace", "tier": "living",
       "slug": "google-workspace",
-      "name": "Google Workspace",
-      "blurb": "AgentCore deployment fork of the slack-prototypes MCP tools",
-      "tier": "living"
+      "blurb": "AgentCore deployment fork of the slack-prototypes MCP tools"
     },
-    {
+    { "name": "Google Workspace PRD", "tier": "living",
       "slug": "google-workspace-prd",
-      "name": "Google Workspace PRD",
-      "blurb": "Production variant of the google-workspace deployment",
-      "tier": "living"
+      "blurb": "Production variant of the google-workspace deployment"
     },
-    {
+    { "name": "GovBrain", "tier": "living",
       "slug": "govbrain",
-      "name": "GovBrain",
       "blurb": "Control plane over the ltm engine — provisions and governs isolated memory brains",
-      "tier": "living",
       "host": "https://govbrain.labs.ai.tech.gov.sg"
     },
-    {
+    { "name": "Guidemaker", "tier": "living",
       "slug": "guidemaker",
-      "name": "Guidemaker",
-      "blurb": "Records narrated product guides — multi-segment capture, auth modes, polish pass",
-      "tier": "living"
+      "blurb": "Records narrated product guides — multi-segment capture, auth modes, polish pass"
     },
-    {
+    { "name": "Imagine", "tier": "living",
       "slug": "imagine",
-      "name": "Imagine",
-      "blurb": "Generate images with gpt-image-2 via the AIP LiteLLM proxy. Style presets, enhance",
-      "tier": "living"
+      "blurb": "Generate images with gpt-image-2 via the AIP LiteLLM proxy. Style presets, enhance"
     },
-    {
+    { "name": "Labs Auth", "tier": "living",
       "slug": "labs-auth",
-      "name": "Labs Auth",
-      "blurb": "The shared Cognito pool and edge gate every labs app authenticates against",
-      "tier": "living"
+      "blurb": "The shared Cognito pool and edge gate every labs app authenticates against"
     },
-    {
+    { "name": "Limn", "tier": "living",
       "slug": "limn",
-      "name": "Limn",
       "blurb": "No description recorded.",
-      "tier": "living",
       "note": "No ABOUT.md or README present."
     },
-    {
+    { "name": "LTM Source", "tier": "living",
       "slug": "ltm-src",
-      "name": "LTM Source",
-      "blurb": "Long-term memory MCP server for AgentCore Runtime. Consumed by govbrain as-is",
-      "tier": "living"
+      "blurb": "Long-term memory MCP server for AgentCore Runtime. Consumed by govbrain as-is"
     },
-    {
+    { "name": "Playtester", "tier": "living",
       "slug": "playtester",
-      "name": "Playtester",
       "blurb": "Playwright regression and adversarial safety suites for desk",
-      "tier": "living",
       "host": "https://playtester.labs.ai.tech.gov.sg"
     },
-    {
+    { "name": "Sandbox", "tier": "living",
       "slug": "sandbox",
-      "name": "Sandbox",
-      "blurb": "Scratch space. Nothing here is load-bearing",
-      "tier": "living"
+      "blurb": "Scratch space. Nothing here is load-bearing"
     },
-    {
+    { "name": "Slack Prototypes", "tier": "living",
       "slug": "slack-prototypes",
-      "name": "Slack Prototypes",
-      "blurb": "Slack tool prototypes. Upstream of the google-workspace deployment fork",
-      "tier": "living"
+      "blurb": "Slack tool prototypes. Upstream of the google-workspace deployment fork"
     },
-    {
+    { "name": "Tendrils", "tier": "living",
       "slug": "tendrils",
-      "name": "Tendrils",
-      "blurb": "Dynamic agent-skill management with human approval and git-like versioning",
-      "tier": "living"
+      "blurb": "Dynamic agent-skill management with human approval and git-like versioning"
     },
-    {
+    { "name": "Tentacles", "tier": "living",
       "slug": "tentacles",
-      "name": "Tentacles",
-      "blurb": "Telegram bridge into the Terra arbiter",
-      "tier": "living"
+      "blurb": "Telegram bridge into the Terra arbiter"
     },
-    {
+    { "name": "Terra", "tier": "living",
       "slug": "terra",
-      "name": "Terra",
-      "blurb": "The multi-agent orchestrator this all runs on",
-      "tier": "living"
+      "blurb": "The multi-agent orchestrator this all runs on"
     },
-    {
+    { "name": "Tripper", "tier": "living",
       "slug": "tripper",
-      "name": "Tripper",
-      "blurb": "Self-hosted trip planner",
-      "tier": "living"
+      "blurb": "Self-hosted trip planner"
     },
-    {
+    { "name": "Vendor", "tier": "living",
       "slug": "vendor",
-      "name": "Vendor",
-      "blurb": "Vendored references and third-party source",
-      "tier": "living"
+      "blurb": "Vendored references and third-party source"
     },
-    {
+    { "name": "Writer", "tier": "living",
       "slug": "writer",
-      "name": "Writer",
-      "blurb": "Thin control plane for a technical blog — persona, voice linter, corpus index",
-      "tier": "living"
+      "blurb": "Thin control plane for a technical blog — persona, voice linter, corpus index"
     },
-    {
+    { "name": "Editor", "tier": "ascended",
       "slug": "editor",
-      "name": "Editor",
       "blurb": "Multi-tenant GitLab repo editor and AgentCore agent tester",
-      "tier": "ascended",
-      "absorbedInto": {
-        "name": "deskboard",
-        "slug": "editor-frontpage"
-      }
+      "absorbedInto": {"name":"Harness"}
     },
-    {
+    { "name": "MCPScan", "tier": "ascended",
       "slug": "mcpscan",
-      "name": "MCPScan",
       "blurb": "Scan-on-add gate and drift check that rejects malicious MCP servers",
-      "tier": "ascended",
-      "absorbedInto": {
-        "name": "the MCP gateway"
-      }
+      "absorbedInto": {"name":"MCP gateway"}
     },
-    {
+    { "name": "Offside", "tier": "ascended",
       "slug": "offside",
-      "name": "Offside",
       "blurb": "Dependency-free stateful guardrail. Catches multi-turn exploits a per-turn scan can't",
-      "tier": "ascended",
-      "absorbedInto": {
-        "name": "Compliance API Dashboard",
-        "slug": "compliance-api-dashboard"
-      }
+      "absorbedInto": {"name":"Compliance API Dashboard","slug":"compliance-api-dashboard"}
     },
-    {
+    { "name": "Giant Robots Labs", "tier": "dormant",
       "slug": "giantrobotslabs",
-      "name": "Giant Robots Labs",
       "blurb": "The Giant Robots Labs public site",
-      "tier": "dormant",
       "host": "https://giantrobots.tech.gov.sg"
     },
-    {
+    { "name": "Harness Site", "tier": "dormant",
       "slug": "harness-site",
-      "name": "Harness Site",
       "blurb": "The harness site",
-      "tier": "dormant",
       "host": "https://harness.ai.tech.gov.sg"
     },
-    {
+    { "name": "ManyDevs", "tier": "dormant",
       "slug": "manydevs",
-      "name": "ManyDevs",
       "blurb": "Multi-tenant platform giving each engineer an isolated dev environment and agent",
-      "tier": "dormant",
       "host": "https://manydevs.ai.tech.gov.sg"
     },
-    {
+    { "name": "Mech Hangar", "tier": "dormant",
       "slug": "mech-hangar",
-      "name": "Mech Hangar",
       "blurb": "A 3D hangar where every Giant Robots Labs project is a procedurally generated mech",
-      "tier": "dormant",
       "host": "https://stg.agents.ai.tech.gov.sg/frontend/hangar/"
     },
-    {
+    { "name": "MiniMe", "tier": "dormant",
       "slug": "minime",
-      "name": "MiniMe",
       "blurb": "Personal agentic task board — the owner's agent triages, solves, or delegates each request",
-      "tier": "dormant",
       "host": "https://minime.labs.ai.tech.gov.sg"
     },
-    {
+    { "name": "Analytics", "tier": "risen",
       "slug": "analytics",
-      "name": "Analytics",
       "blurb": "AIAP internal analytics dashboard. Live, unclaimed, no repo in Terra.",
-      "tier": "risen",
       "host": "https://analytics.labs.ai.tech.gov.sg",
       "note": "No matching repo in projects/. Untouched since 2026-06-10."
     },
-    {
+    { "name": "AIAP API Server", "tier": "fallen",
       "slug": "aiap-api-server",
-      "name": "AIAP API Server",
-      "blurb": "NestJS API for agent and MCP-server catalogs with Bedrock AgentCore integration",
-      "tier": "fallen"
+      "blurb": "NestJS API for agent and MCP-server catalogs with Bedrock AgentCore integration"
     },
-    {
+    { "name": "AssistantAI Landing", "tier": "fallen",
       "slug": "assistantai-landing",
-      "name": "AssistantAI Landing",
-      "blurb": "Landing page for AssistantAI",
-      "tier": "fallen"
+      "blurb": "Landing page for AssistantAI"
     },
-    {
+    { "name": "Build for Build", "tier": "fallen",
       "slug": "build-for-build",
-      "name": "Build for Build",
       "blurb": "No description recorded.",
-      "tier": "fallen",
       "note": "No ABOUT.md or README present."
     },
-    {
+    { "name": "Build Solver", "tier": "fallen",
       "slug": "build-solver",
-      "name": "Build Solver",
       "blurb": "No description recorded.",
-      "tier": "fallen",
       "note": "No ABOUT.md or README present."
     },
-    {
+    { "name": "Cortex", "tier": "fallen",
       "slug": "cortex",
-      "name": "Cortex",
-      "blurb": "Personal knowledge graph in Go. Entities, facts and relationships, queryable over MCP",
-      "tier": "fallen"
+      "blurb": "Personal knowledge graph in Go. Entities, facts and relationships, queryable over MCP"
     },
-    {
+    { "name": "Devenv Gateway", "tier": "fallen",
       "slug": "devenv-gateway",
-      "name": "Devenv Gateway",
-      "blurb": "Containerized dev-environment gateway wrapping Claude Code CLI, tmux, files, git in one API",
-      "tier": "fallen"
+      "blurb": "Containerized dev-environment gateway wrapping Claude Code CLI, tmux, files, git in one API"
     },
-    {
+    { "name": "Doc Generator", "tier": "fallen",
       "slug": "doc-generator",
-      "name": "Doc Generator",
-      "blurb": "Auto-generated Docusaurus docs for internal repos, published behind one landing page",
-      "tier": "fallen"
+      "blurb": "Auto-generated Docusaurus docs for internal repos, published behind one landing page"
     },
-    {
+    { "name": "How Can", "tier": "fallen",
       "slug": "how-can",
-      "name": "How Can",
       "blurb": "No description recorded.",
-      "tier": "fallen",
       "note": "README is untouched GitLab scaffold boilerplate."
     },
-    {
+    { "name": "ProMarket", "tier": "fallen",
       "slug": "promarket",
-      "name": "ProMarket",
-      "blurb": "Satirical play-money prediction market for workplace promotions",
-      "tier": "fallen"
+      "blurb": "Satirical play-money prediction market for workplace promotions"
     },
-    {
+    { "name": "Terra Dashboard", "tier": "fallen",
       "slug": "terra-dashboard",
-      "name": "Terra Dashboard",
       "blurb": "No description recorded.",
-      "tier": "fallen",
       "note": "Cold since 2026-04-08; function now lives in terra/scripts."
     },
-    {
+    { "name": "VOX", "tier": "fallen",
       "slug": "VOX",
-      "name": "VOX",
       "blurb": "No description recorded.",
-      "tier": "fallen",
       "note": "README describes the vendored external OpenBMB VoxCPM2 TTS repo, not an internal build."
     },
-    {
+    { "name": "WowDocs", "tier": "fallen",
       "slug": "wowdocs",
-      "name": "WowDocs",
       "blurb": "No description recorded.",
-      "tier": "fallen",
       "note": "README is an unedited copy of doc-generator's — likely a stale fork, not independently described."
     }
   ]

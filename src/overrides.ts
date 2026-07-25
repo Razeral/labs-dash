@@ -1,4 +1,5 @@
 import { TIERS, acceptsDrop } from './types'
+import { formatRoster } from './rosterFormat'
 import type { Project, Tier, TierOverrides } from './types'
 
 export const STORAGE_KEY = 'labs-dash:overrides'
@@ -70,4 +71,4 @@ export const exportRoster = (
   overrides: TierOverrides,
   omit: readonly string[] = []
 ): string =>
-  JSON.stringify({ omit: [...omit], projects: applyOverrides(projects, overrides) }, null, 2) + '\n'
+  formatRoster(omit, applyOverrides(projects, overrides))

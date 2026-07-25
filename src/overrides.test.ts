@@ -139,3 +139,21 @@ describe('overrides under a hostile localStorage', () => {
     expect(() => clearOverrides()).not.toThrow()
   })
 })
+
+describe('exportRoster formatting', () => {
+  it('puts name and tier on each project opening line so a folded file reads as the tier list', () => {
+    const json = exportRoster(seed, {}, ['b'])
+    const lines = json.split('\n')
+    const opens = lines.filter((l) => l.trimStart().startsWith('{ "name":'))
+    expect(opens).toHaveLength(seed.length)
+    for (const line of opens) expect(line).toMatch(/^\s*\{ "name": ".+", "tier": "\w+",?/)
+  })
+
+  it('round-trips: the formatted output parses back to the same data', () => {
+    const json = exportRoster(seed, { a: 'fallen' }, ['b'])
+    const parsed = JSON.parse(json) as { omit: string[]; projects: Project[] }
+    expect(parsed.omit).toEqual(['b'])
+    expect(parsed.projects.map((p) => p.slug)).toEqual(seed.map((p) => p.slug))
+    expect(parsed.projects.find((p) => p.slug === 'a')?.tier).toBe('fallen')
+  })
+})

@@ -11,6 +11,7 @@
 import { execSync } from 'node:child_process'
 import { readdirSync, statSync, writeFileSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { formatRoster } from './format-roster.mjs'
 
 const ROOT = '/Users/aip/Code/Terra/projects'
 const TODAY = new Date('2026-07-25')
@@ -90,5 +91,5 @@ const merged = rows.map((row) => {
 })
 merged.sort((a, b) => TIER_ORDER[a.tier] - TIER_ORDER[b.tier] || a.name.toLowerCase().localeCompare(b.name.toLowerCase()))
 const out = { omit: prev.omit ?? [], projects: merged }
-writeFileSync('src/data/projects.json', JSON.stringify(out, null, 2) + '\n')
+writeFileSync('src/data/projects.json', formatRoster(out))
 console.log(`wrote ${merged.length} projects (${out.omit.length} omitted)`)
