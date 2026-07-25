@@ -79,4 +79,17 @@ describe('isEditEnabled', () => {
   it('is case-insensitive about the owner email', () => {
     expect(isEditEnabled(cookieWith('OWNER@TECH.GOV.SG'), '?edit=1', OWNER)).toBe(true)
   })
+
+  it('never enables edit when ownerEmail is empty (deploy-slip guard)', () => {
+    // If VITE_OWNER_EMAIL is not set at build time, ownerEmail becomes ''.
+    // This must never allow edit mode, even with a valid cookie and edit flag.
+    expect(isEditEnabled(cookieWith(OWNER), '?edit=1', '')).toBe(false)
+  })
+
+  it('never enables edit when decoded email is empty', () => {
+    // A cookie with an empty email claim must never enable edit mode.
+    // This also covers the case where both email and ownerEmail are empty.
+    const emptyEmailCookie = `CognitoIdentityServiceProvider.abc123.${OWNER}.idToken=${fakeIdToken('')}`
+    expect(isEditEnabled(emptyEmailCookie, '?edit=1', '')).toBe(false)
+  })
 })

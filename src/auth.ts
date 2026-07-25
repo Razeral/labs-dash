@@ -30,8 +30,10 @@ export const readEmailFromCookie = (cookie: string): string | null => {
 
 export const isEditEnabled = (cookie: string, search: string, ownerEmail: string): boolean => {
   if (!new URLSearchParams(search).has('edit')) return false
+  if (!ownerEmail) return false
   const email = readEmailFromCookie(cookie)
-  // Multiple ID tokens may coexist if the same user has multiple client sessions,
-  // but they all carry the same email claim, so taking the first match is safe.
-  return email !== null && email.toLowerCase() === ownerEmail.toLowerCase()
+  if (!email) return false
+  // All app clients share one Cognito pool and one signed-in user, so any ID token
+  // found carries the same email claim. Taking the first match is safe.
+  return email.toLowerCase() === ownerEmail.toLowerCase()
 }
