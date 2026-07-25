@@ -92,4 +92,10 @@ describe('isEditEnabled', () => {
     const emptyEmailCookie = `CognitoIdentityServiceProvider.abc123.${OWNER}.idToken=${fakeIdToken('')}`
     expect(isEditEnabled(emptyEmailCookie, '?edit=1', '')).toBe(false)
   })
+
+  it('never enables edit when the decoded email is empty and an owner is configured', () => {
+    // Isolating test for the `if (!email) return false` guard.
+    // With a non-empty ownerEmail, an empty decoded email must fail.
+    expect(isEditEnabled(cookieWith(''), '?edit=1', OWNER)).toBe(false)
+  })
 })

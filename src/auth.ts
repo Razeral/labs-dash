@@ -9,6 +9,8 @@ const findIdToken = (cookie: string): string | null => {
   for (const part of cookie.split(';')) {
     const [k, ...v] = part.trim().split('=')
     if (k.startsWith('CognitoIdentityServiceProvider.') && k.endsWith('.idToken')) {
+      // All app clients share one Cognito pool and one signed-in user, so any ID token
+      // found carries the same email claim. Taking the first match is safe.
       return v.join('=')
     }
   }
@@ -30,10 +32,10 @@ export const readEmailFromCookie = (cookie: string): string | null => {
 
 export const isEditEnabled = (cookie: string, search: string, ownerEmail: string): boolean => {
   if (!new URLSearchParams(search).has('edit')) return false
+  // Redundant with the email check below, but kept explicitly to make an unset
+  // VITE_OWNER_EMAIL (deploy slip) fail closed by construction.
   if (!ownerEmail) return false
   const email = readEmailFromCookie(cookie)
   if (!email) return false
-  // All app clients share one Cognito pool and one signed-in user, so any ID token
-  // found carries the same email claim. Taking the first match is safe.
   return email.toLowerCase() === ownerEmail.toLowerCase()
 }
