@@ -1,0 +1,35 @@
+:root {
+  --ground: #0a0908;
+  --surface: #131110;
+  --surface-raised: #1b1817;
+  --edge: #2a2523;
+  --parchment: #e8ddc8;
+  --parchment-dim: #9a9083;
+  --parchment-faint: #5d564e;
+  --ember: #d4763a;
+  --ember-glow: rgba(212, 118, 58, 0.28);
+  --gold: #d9b871;
+  --gold-glow: rgba(217, 184, 113, 0.22);
+
+  --font-display: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  --font-body: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --step-1: 0.75rem;
+  --step0: 0.875rem;
+  --step1: 1.0625rem;
+  --step2: 1.5rem;
+  --step3: 2.25rem;
+
+  --space-1: 0.375rem;
+  --space-2: 0.75rem;
+  --space-3: 1.25rem;
+  --space-4: 2rem;
+  --space-5: 3.5rem;
+
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-settle: cubic-bezier(0.32, 0.72, 0, 1);
+  --dur-in: 160ms;
+  --dur-out: 220ms;
+  --dur-enter: 260ms;
+}
