@@ -3,6 +3,7 @@ import { TierSection } from './components/TierSection'
 import { EditBar } from './components/EditBar'
 import { Backdrop } from './components/Backdrop'
 import { Hero } from './components/Hero'
+import { ProjectModal } from './components/ProjectModal'
 import type { CopyState } from './components/EditBar'
 import { readOverrides, writeOverride, clearOverrides, applyOverrides, exportRoster } from './overrides'
 import { isEditEnabled } from './auth'
@@ -21,7 +22,7 @@ export const App = () => {
   const [overrides, setOverrides] = useState(() => readOverrides())
   const [copyState, setCopyState] = useState<CopyState>('idle')
   const [activeTier, setActiveTier] = useState<Tier>('living')
-  const [hoverArt, setHoverArt] = useState<string | null>(null)
+  const [openSlug, setOpenSlug] = useState<string | null>(null)
   const dragged = useRef<string | null>(null)
   const copyTimer = useRef<number | null>(null)
 
@@ -51,34 +52,18 @@ export const App = () => {
     [overrides]
   )
 
+  // Mirrors Card's href rules so the modal's link target and the card's are never out of
+  // step: a fallen project links nowhere, an ascended one links to its successor.
+  const openProject = useMemo(
+    () => (openSlug ? resolved.find((p) => p.slug === openSlug) ?? null : null),
+    [openSlug, resolved]
+  )
+
   const hostBySlug = useMemo(
     () => Object.fromEntries(roster.filter((p) => p.host).map((p) => [p.slug, p.host as string])),
     []
   )
 
-  // Hovering a card floods the whole backdrop with that project's art. Deliberately a
-  // SEPARATE listener from the cursor-glow effect below: that one is suppressed under
-  // reduced-motion, but this is a content reveal rather than motion, and suppressing it
-  // would hide the art from exactly the people least likely to go hunting for it. It is
-  // still gated on a real hover-capable pointer, since there is no hover to leave on touch.
-  useEffect(() => {
-    if (typeof window.matchMedia !== 'function') return
-    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
-    const board = document.querySelector('.board')
-    if (!board) return
-    const onOver = (event: Event) => {
-      const card = (event.target as Element)?.closest?.('.card') as HTMLElement | null
-      const slug = card?.dataset.slug
-      setHoverArt(slug && artBySlug[slug] ? artBySlug[slug] : null)
-    }
-    const onLeave = () => setHoverArt(null)
-    board.addEventListener('pointerover', onOver)
-    board.addEventListener('pointerleave', onLeave)
-    return () => {
-      board.removeEventListener('pointerover', onOver)
-      board.removeEventListener('pointerleave', onLeave)
-    }
-  }, [artBySlug])
 
   // Which rank owns the backdrop. A second observer with a narrow band around the viewport's
   // middle means exactly one section is "current" at a time, so the backdrop crossfades as a
@@ -218,7 +203,7 @@ export const App = () => {
 
   return (
     <>
-      <Backdrop active={activeTier} focus={hoverArt} />
+      <Backdrop active={activeTier} />
       <Hero count={roster.length} />
       <main className="board">
 
@@ -241,10 +226,25 @@ export const App = () => {
           editing={editing}
           overrides={overrides}
           onDragStart={(slug) => { dragged.current = slug }}
+          onOpen={setOpenSlug}
           onDrop={handleDrop}
         />
       ))}
       </main>
+      {openProject && (
+        <ProjectModal
+          project={openProject}
+          art={cardArt[openProject.slug]}
+          href={
+            openProject.tier === 'fallen'
+              ? undefined
+              : openProject.tier === 'ascended'
+                ? (openProject.absorbedInto?.slug ? hostBySlug[openProject.absorbedInto.slug] : undefined)
+                : openProject.host
+          }
+          onClose={() => setOpenSlug(null)}
+        />
+      )}
     </>
   )
 }

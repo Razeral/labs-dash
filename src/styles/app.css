@@ -685,34 +685,6 @@ body {
   .backdrop__layer { transition-duration: 1200ms !important; }
 }
 
-/* Hovering a card floods the backdrop with that project's art at much higher opacity than the
-   tier scene. The tier layers drop back so the two do not composite into mush — the focused
-   art should read as taking over the room, not as a double exposure. */
-.backdrop__layer--focus {
-  opacity: 0;
-  transition: opacity 420ms var(--ease-out);
-}
-
-.backdrop__layer--focus.is-active { opacity: 0.55; }
-
-.backdrop.is-focused .backdrop__layer:not(.backdrop__layer--focus) { opacity: 0.03; }
-
-/* While a card is focused the vignette RELAXES rather than tightens. Checked before loosening
-   it: nothing legible sits on the raw backdrop — .tier__header is an opaque --ground bar and
-   carries both .tier__lore and .tier__count, and every .card is opaque. The gaps between cards
-   are the only thing the backdrop shows through, so there is no contrast to protect here and a
-   heavy scrim only strangles the art. (The first version of this rule darkened to ~0.75
-   composite, which left the flood at ~9% effective opacity — invisible.) The edges still fall
-   off so the image reads as lighting rather than as wallpaper. */
-.backdrop.is-focused::after {
-  background:
-    linear-gradient(to bottom, var(--ground) 0%, rgba(10, 9, 8, 0.18) 18%, rgba(10, 9, 8, 0.18) 82%, var(--ground) 100%),
-    radial-gradient(130% 100% at 50% 45%, rgba(10, 9, 8, 0.02) 0%, rgba(10, 9, 8, 0.62) 100%);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .backdrop__layer--focus { transition-duration: 700ms !important; }
-}
 
 /* ── Hero: the door ───────────────────────────────────────────────────────────
    A full-viewport threshold above the board. The door art carries a bright vertical seam
@@ -819,4 +791,168 @@ body {
 
 @media (max-width: 640px) {
   .hero { padding-inline: var(--space-3); }
+}
+
+/* ── Card: two targets ────────────────────────────────────────────────────────
+   The stretched button covers the card and opens the detail view. The host line sits above
+   it so a direct click still navigates straight out. Both are real controls, so both get a
+   focus ring — the button's is drawn on the card, since the button itself is invisible. */
+.card__open {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  appearance: none;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.card__open:focus { outline: none; }
+
+.card:has(.card__open:focus-visible) {
+  border-color: var(--ember);
+  box-shadow: 0 0 0 2px var(--ember-glow);
+}
+
+.card__meta--link {
+  position: relative;
+  z-index: 1;
+  align-self: flex-start;
+  color: var(--parchment-dim);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: color var(--dur-out) var(--ease-out), border-color var(--dur-out) var(--ease-out);
+}
+
+.card__meta--link:hover,
+.card__meta--link:focus-visible {
+  color: var(--ember);
+  border-bottom-color: var(--ember);
+  transition-duration: var(--dur-in);
+}
+
+/* Every card now opens something, so the lift is honest on all of them — including the ones
+   with no host, which previously had to stay flat because they led nowhere. */
+@media (hover: hover) and (pointer: fine) {
+  .card--inert:hover { transform: translateY(-2px); }
+}
+
+.card--inert { cursor: pointer; }
+
+/* ── Modal ────────────────────────────────────────────────────────────────────
+   The art at full strength, which is the whole point: nothing is layered over it except the
+   panel's own body below. */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: var(--space-3);
+  background: rgba(6, 5, 5, 0.82);
+  animation: modal-in 180ms var(--ease-out);
+}
+
+.modal__panel {
+  width: min(720px, 100%);
+  max-height: 88dvh;
+  overflow-y: auto;
+  background-color: var(--surface);
+  border: 1px solid var(--edge);
+  border-radius: 3px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.7);
+  animation: panel-in 220ms var(--ease-settle);
+}
+
+.modal__art {
+  aspect-ratio: 3 / 2;
+  background-size: cover;
+  background-position: center;
+  border-bottom: 1px solid var(--edge);
+}
+
+.modal__body { padding: var(--space-4); }
+
+.modal__rank {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--step-1);
+  letter-spacing: 0.2em;
+  color: var(--ember);
+}
+
+.modal__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--step3);
+  font-weight: 400;
+  color: var(--parchment);
+}
+
+.modal__blurb {
+  margin: var(--space-2) 0 0;
+  font-size: var(--step1);
+  line-height: 1.5;
+  color: var(--parchment-dim);
+}
+
+.modal__note {
+  margin: var(--space-2) 0 0;
+  font-family: var(--font-mono);
+  font-size: var(--step-1);
+  color: var(--parchment-dim);
+}
+
+.modal__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--rule);
+}
+
+.modal__go {
+  font-family: var(--font-mono);
+  font-size: var(--step0);
+  color: var(--ember);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color var(--dur-in) var(--ease-out);
+}
+
+.modal__go:hover,
+.modal__go:focus-visible { border-bottom-color: var(--ember); }
+
+.modal__go--none { color: var(--parchment-faint); }
+
+.modal__close {
+  appearance: none;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: var(--step-1);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--parchment-dim);
+  background: transparent;
+  border: 1px solid var(--edge);
+  border-radius: 2px;
+  padding: var(--space-1) var(--space-3);
+  transition: color var(--dur-in) var(--ease-out), border-color var(--dur-in) var(--ease-out);
+}
+
+.modal__close:hover,
+.modal__close:focus-visible { color: var(--parchment); border-color: var(--ember); }
+
+@keyframes modal-in { from { opacity: 0 } to { opacity: 1 } }
+@keyframes panel-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.99) }
+  to   { opacity: 1; transform: none }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal, .modal__panel { animation: none !important; }
 }

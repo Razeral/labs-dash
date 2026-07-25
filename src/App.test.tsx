@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, within } from '@testing-library/react'
 import { App } from './App'
 import { STORAGE_KEY } from './overrides'
 import { TIERS, TIER_META } from './types'
@@ -258,24 +258,12 @@ describe('App', () => {
     expect(isRevealed(section)).toBe(true)
   })
 
-  it('mounts one backdrop layer per rank that has art, plus the focus layer', () => {
+  it('mounts one backdrop layer per rank that has art, with exactly one active', () => {
     const { container } = render(<App />)
-    const tierLayers = container.querySelectorAll('.backdrop__layer:not(.backdrop__layer--focus)')
-    expect(tierLayers).toHaveLength(Object.keys(tierArt).length)
-    // The focus layer is always mounted so leaving a card fades out instead of cutting.
-    expect(container.querySelectorAll('.backdrop__layer--focus')).toHaveLength(1)
-    expect(container.querySelectorAll('.backdrop__layer:not(.backdrop__layer--focus).is-active'))
-      .toHaveLength(tierArt.living ? 1 : 0)
+    expect(container.querySelectorAll('.backdrop__layer')).toHaveLength(Object.keys(tierArt).length)
+    expect(container.querySelectorAll('.backdrop__layer.is-active')).toHaveLength(tierArt.living ? 1 : 0)
   })
 
-  it('leaves the focus layer inert until a card is hovered', () => {
-    const { container } = render(<App />)
-    const focus = container.querySelector('.backdrop__layer--focus') as HTMLElement
-    expect(focus.classList.contains('is-active')).toBe(false)
-    expect(container.querySelector('.backdrop')?.classList.contains('is-focused')).toBe(false)
-    // No image is set until something is hovered, so nothing is fetched up front.
-    expect(focus.style.backgroundImage).toBe('')
-  })
 
   it('hides the backdrop from assistive tech', () => {
     const { container } = render(<App />)
@@ -284,5 +272,49 @@ describe('App', () => {
       expect(backdrop).not.toBeNull()
       expect(backdrop).toHaveAttribute('aria-hidden', 'true')
     }
+  })
+
+  it('opens a detail modal from a card body and closes it on Escape', () => {
+    const { container } = render(<App />)
+    expect(container.querySelector('.modal')).toBeNull()
+
+    const card = container.querySelector('[data-slug="govbrain"]') as HTMLElement
+    fireEvent.click(card.querySelector('.card__open') as HTMLElement)
+
+    const dialog = screen.getByRole('dialog')
+    expect(dialog).toHaveAttribute('aria-modal', 'true')
+    expect(within(dialog).getByRole('heading', { level: 2 })).toHaveTextContent('GovBrain')
+    // The modal's outbound link must match the card's host, not some other target.
+    expect(within(dialog).getByRole('link', { name: /govbrain\.labs/ })).toBeInTheDocument()
+
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(container.querySelector('.modal')).toBeNull()
+  })
+
+  it('gives a fallen project a detail view with no outbound link', () => {
+    const { container } = render(<App />)
+    const fallen = container.querySelector('.tier--fallen [data-slug]') as HTMLElement
+    fireEvent.click(fallen.querySelector('.card__open') as HTMLElement)
+    const dialog = screen.getByRole('dialog')
+    expect(within(dialog).queryByRole('link')).toBeNull()
+    expect(within(dialog).getByText(/no longer answers|UNSUMMONED/)).toBeInTheDocument()
+  })
+
+  it('locks the page behind the modal and restores scrolling on close', () => {
+    const { container } = render(<App />)
+    const card = container.querySelector('[data-slug="govbrain"]') as HTMLElement
+    fireEvent.click(card.querySelector('.card__open') as HTMLElement)
+    expect(document.body.style.overflow).toBe('hidden')
+    fireEvent.click(screen.getByRole('button', { name: /close/i }))
+    expect(document.body.style.overflow).not.toBe('hidden')
+  })
+
+  it('anchors each rank so the hero cue has somewhere to scroll to', () => {
+    const { container } = render(<App />)
+    // The hero's ENTER cue targets #rank-living; without the id it silently does nothing.
+    expect(container.querySelector('#rank-living')).not.toBeNull()
+    const cue = container.querySelector('.hero__cue') as HTMLAnchorElement
+    const target = cue.getAttribute('href')?.slice(1)
+    expect(container.querySelector(`#${target}`)).not.toBeNull()
   })
 })

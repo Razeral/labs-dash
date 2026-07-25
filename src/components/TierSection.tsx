@@ -11,10 +11,11 @@ type Props = {
   editing: boolean
   overrides: TierOverrides
   onDragStart: (slug: string) => void
+  onOpen: (slug: string) => void
   onDrop: (tier: Tier) => void
 }
 
-export const TierSection = ({ tier, projects, hostBySlug, artBySlug = {}, editing, overrides, onDragStart, onDrop }: Props) => {
+export const TierSection = ({ tier, projects, hostBySlug, artBySlug = {}, editing, overrides, onDragStart, onOpen, onDrop }: Props) => {
   const meta = TIER_META[tier]
   const count = projects.length
   const [dropTarget, setDropTarget] = useState(false)
@@ -30,6 +31,7 @@ export const TierSection = ({ tier, projects, hostBySlug, artBySlug = {}, editin
 
   return (
     <section
+      id={`rank-${tier}`}
       className={className}
       onDragOver={(e) => {
         if (!droppable) return
@@ -66,6 +68,7 @@ export const TierSection = ({ tier, projects, hostBySlug, artBySlug = {}, editin
               overridden={Boolean(overrides[p.slug])}
               art={artBySlug[p.slug]}
               onDragStart={onDragStart}
+              onOpen={onOpen}
             />
           </div>
         ))}

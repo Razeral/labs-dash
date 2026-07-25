@@ -112,19 +112,24 @@ a centred `max-width` column and no negative margin can bleed a child to the vie
 The title sits in the frame's dark negative space above the door's bright central seam, and the
 scrim fades to `--ground` at the bottom so the first rank emerges from the scene.
 
-### Hover flood
+### Card click targets
 
-Hovering a card with art crossfades the whole backdrop to that project's scene at 0.55 opacity,
-so the art gets the full viewport while the board stays exactly where it was. It is a **separate
-listener** from the cursor-glow effect: that one is suppressed under `prefers-reduced-motion`,
-but this is a content reveal rather than motion, and suppressing it would hide the art from
-exactly the people least likely to hunt for it. Gated on a real hover-capable pointer.
+A card carries **two** controls, not one:
 
-While focused the vignette **relaxes** rather than tightens. Nothing legible sits on the raw
-backdrop — `.tier__header` is an opaque `--ground` bar carrying both the lore and the realm
-count, and every card is opaque — so there is no contrast to protect and a heavy scrim only
-strangles the art. The first version darkened to ~0.75 composite and left the flood at ~9%
-effective opacity, i.e. invisible.
+- **The card body** is a stretched invisible `button` that opens a detail modal — full art,
+  rank, blurb, note, and an outbound link at the bottom.
+- **The host line** is a real `<a>` layered above it, so a direct click goes straight to the
+  project without a detour through the modal.
+
+They are siblings layered by `z-index`, never nested: a link inside a button is invalid HTML
+and browsers disagree about which one wins activation.
+
+Because every card now opens something, the hover lift applies to **all** of them — including
+unhosted and fallen cards, which previously had to stay flat because they led nowhere. The
+affordance still tells the truth; the truth just changed.
+
+The modal locks body scroll while open, closes on Escape or a backdrop click, focuses the close
+button on open and returns focus to the card that opened it.
 
 ## Drag-and-drop re-tiering
 
