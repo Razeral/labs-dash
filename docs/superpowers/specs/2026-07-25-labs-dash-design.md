@@ -28,8 +28,13 @@ the value is in reusing a pattern that already works.
 
 **Stack:** Vite + React + TypeScript. Two-space indent, no semicolons, functional style.
 
-**Why static:** the entire dataset is a curated list that changes when a human decides it changed.
-A backend would add operational surface for zero benefit.
+**Why static:** the entire dataset is a list that changes when a human decides it changed. A
+backend would add operational surface for zero benefit. Drag-and-drop re-tiering (§3.5) does not
+change this — overrides live in the viewer's own localStorage and are exported for commit, so
+there is no write path and no server-side state.
+
+**Render pipeline:** `projects.json` (committed seed) → localStorage overrides layered on top →
+grouped by tier → rendered. One direction, no fetch.
 
 ---
 
@@ -56,30 +61,86 @@ New app client `dash` on the shared pool `ap-southeast-1_zhuDvtEBS` (account `32
 
 ```bash
 bash provision-appclient.sh dash https://labs.ai.tech.gov.sg
+# targeted TechPass enable — see 2.3, do NOT run provision-federation.sh
 cd edge-auth && bash build.sh dash
-bash provision-edge.sh dash
+bash provision-edge.sh dash        # ⚠ does not exist yet — see 2.5
 ```
 
 `requiredGroup` is left **empty** — the group gate compiles to a no-op and any TechPass user who
-can sign in is admitted. This is the deliberate current posture.
+can sign in is admitted. This is the deliberate current posture. `build.sh` prints a `WARNING: no
+requiredGroup` line in this case; that warning is expected, not a fault.
 
 **To restrict later** (no code change): set `appClients.dash.requiredGroup` in `outputs.json`,
 re-run `build.sh dash` and `provision-edge.sh dash`. The group name is baked into the bundle at
 build time as `__REQUIRED_GROUP__`.
 
-### 2.3 Callback URLs — both, deliberately
+### 2.3 Callback path is `/_callback`, and federation must be enabled surgically
 
-The app client registers **two** callbacks:
+**The labs-auth README is wrong about the callback path.** It documents
+`https://<app>.labs.ai.tech.gov.sg/callback`, but both `provision-appclient.sh` and
+`provision-federation.sh` register **`${BASE}/_callback`** (underscore) plus `${BASE}/`. The
+scripts are the source of truth. Using `/callback` yields `redirect_mismatch` at login.
 
-1. `https://labs.ai.tech.gov.sg/callback` — the real one
-2. `https://<dist>.cloudfront.net/callback` — the verification one
+`provision-appclient.sh` creates the client with `--supported-identity-providers COGNITO` only —
+**TechPass is not enabled by it.** The repo's way to add TechPass is `provision-federation.sh`, but
+that script **loops over every app client in `outputs.json`** and rewrites each one's callback and
+logout URLs from its recorded `callbackBase`. Running it to onboard `dash` would also rewrite
+`depot`, `playtester` and `finops` — and silently break any of them whose `callbackBase` has since
+drifted from reality.
 
-Rationale: the ACM certificate and the domain alias both block on the zone owner adding CNAME
-records to `labs.ai.tech.gov.sg`, which is outside our control. Registering the CloudFront name
-lets us verify a real end-to-end TechPass login *before* DNS lands, rather than shipping blind and
-discovering an auth bug after the domain goes live. Remove callback 2 once the domain resolves.
+So do **not** run `provision-federation.sh`. Enable TechPass on the `dash` client alone:
 
-### 2.4 Known auth gotchas (from labs-auth, learned the hard way)
+```bash
+aws cognito-idp update-user-pool-client \
+  --user-pool-id ap-southeast-1_zhuDvtEBS \
+  --client-id "$DASH_CLIENT_ID" \
+  --supported-identity-providers COGNITO TechPass \
+  --allowed-o-auth-flows code \
+  --allowed-o-auth-scopes openid email profile \
+  --allowed-o-auth-flows-user-pool-client \
+  --callback-urls https://labs.ai.tech.gov.sg/_callback https://labs.ai.tech.gov.sg/ \
+  --logout-urls https://labs.ai.tech.gov.sg/
+```
+
+The TechPass IdP already exists on the pool, so no IdP create/update is needed — only attaching it
+to this client.
+
+### 2.4 Certificate and DNS — already in place
+
+Both of these were assumed to be blockers and are **not**:
+
+- **Certificate:** `arn:aws:acm:us-east-1:323001028968:certificate/f053a5a8-7d8b-409c-b733-c4801a2485cf`
+  is `*.labs.ai.tech.gov.sg` **with `labs.ai.tech.gov.sg` as an explicit SAN**. A wildcard alone
+  would not cover the apex; this cert does. ISSUED, in use by 4 distributions, expires
+  **2026-12-12** — renewal is someone's future problem, worth noting.
+- **DNS:** `labs.ai.tech.gov.sg` **already resolves** to CloudFront edge IPs (`13.33.88.x`, 32s TTL
+  — the signature of a Route 53 alias). But `curl https://labs.ai.tech.gov.sg/` fails the TLS
+  handshake outright, which means **no distribution currently claims that alias**. It is a dangling
+  alias record left over from a deleted distribution.
+
+Consequence: CloudFront routes by SNI/Host across its entire edge fleet, so once our distribution
+claims the alias, the existing A records resolve to it with **no zone-owner involvement**. The
+`ai.tech.gov.sg` zone is not in this account (Route 53 lists only `323001028968.com` and some
+private zones), so avoiding a DNS request is a material simplification.
+
+**Fallback:** if claiming the alias returns `CNAMEAlreadyExists`, some distribution — possibly in
+another account — still holds it. That is the one case where this becomes a zone-owner
+conversation, and the deploy stops there rather than guessing.
+
+### 2.5 `provision-edge.sh` does not exist — it must be written
+
+The labs-auth README references `provision-edge.sh <app>` in four places. **There is no such file
+anywhere in the repo** (`find . -name 'provision-edge*'` returns nothing); the root holds only
+`provision-{pool,appclient,federation,hostedui}.sh`. The `playtester-edge.zip` and `finops-edge.zip`
+artefacts exist, so those were associated by some means that was never committed.
+
+Writing it is therefore part of this work, not a precondition. It is modelled on depot's
+`auth/associate-edge.sh` and must, per the labs-auth gotchas, do **both** halves: publish a numbered
+Lambda version **and** repoint the distribution's
+`DefaultCacheBehavior.LambdaFunctionAssociations[0].LambdaFunctionARN` at it, surgically via `jq` so
+the WAF, OAC, certificate and `IsIPV6Enabled` settings survive.
+
+### 2.6 Known auth gotchas (from labs-auth, learned the hard way)
 
 - **Stale token = false 403.** `cognito:groups` is baked into the ID token at issue time. If we
   ever add a group gate, existing sessions keep their old group-less token until a clean re-login.
@@ -170,38 +231,110 @@ invite a click — the affordance has to tell the truth.
 `fallen` cards are never links regardless of whether a `host` value is recorded, because the
 distribution is disabled and the domain no longer resolves.
 
-### 3.3 Roster rule
+### 3.3 Roster rule — everything in `projects/`
 
-Curated allowlist, seeded from *"has an ABOUT.md OR has a CloudFront distribution"*, then
-hand-pruned. Adding or dropping a project is a one-file edit.
+**Every git repo under `Terra/projects/` gets a card.** The dashboard's core purpose is that no
+project is invisible; a curated allowlist defeats that by making omission the default. 48 repos
+plus one hosted-but-repoless entry (`analytics`) = **49 cards**.
 
-Excluded as orchestration plumbing rather than shareable projects: `terra`, `fleet`, `labs-auth`,
-`tentacles`. Excluded as scratch: `sandbox`, `vendor`.
+`labs-dash` itself is excluded — a dashboard listing itself is noise.
 
-### 3.4 Seed roster (22 cards)
+Seed tiers are assigned by a mechanical rule, then corrected by hand through drag-and-drop (§3.5).
+The rule does not need to be right, only close, because fixing it is now cheap:
 
-**◆ The Living** (12) — hosted: `govbrain`, `depot`, `compliance-api`, `continuum`, `ducks`.
-Unsummoned: `imagine`, `mech-hangar`, `guidemaker`, `finops`, `tendrils`, `writer`, `offside`.
+| Condition | Seed tier |
+|---|---|
+| Named in the ascended list | `ascended` |
+| Hosted, last commit ≤ 30 days | `living` |
+| Hosted, last commit > 30 days | `dormant` |
+| Unhosted, last commit ≤ 90 days | `living` (unsummoned) |
+| Unhosted, last commit > 90 days | `fallen` |
+| Hosted with no repo in `projects/` | `risen` |
 
-**✦ The Ascended** (2) — `editor` → `deskboard` (linked; deskboard is on the board);
+This deliberately overfills The Living (29 of 49 at seed time) — an unhosted repo committed last
+week is indistinguishable from a maintained one by commit date alone. Re-tiering is expected, and
+is exactly why §3.5 exists.
+
+Superseded: an earlier draft excluded orchestration plumbing (`terra`, `fleet`, `labs-auth`,
+`tentacles`) and scratch repos (`sandbox`, `vendor`). Under the "everything" rule they are all
+included; if any of them reads as noise on the board, drag it to a lower rank rather than
+reintroducing an exclusion list.
+
+### 3.4 Seed roster (49 cards)
+
+Generated by the §3.3 rule as of 2026-07-25. Ages are days since last commit.
+
+**◆ The Living** (29) — hosted: `depot` (0d), `govbrain` (0d), `compliance-api-dashboard` (1d),
+`continuum` (2d), `ducks` (10d), `playtester` (23d), `editor-frontpage` (29d). Unsummoned:
+`imagine` (0d), `sandbox` (0d), `terra` (0d), `vendor` (0d), `aiap-finops` (1d), `writer` (12d),
+`fleet` (15d), `fleet3d` (15d), `bootstrap-mcp` (21d), `offside` (21d), `guidemaker` (22d),
+`tentacles` (22d), `tendrils` (23d), `labs-auth` (25d), `limn` (43d), `ltm-src` (50d),
+`candidate-code-review` (58d), `fueler` (79d), `tripper` (79d), `slack-prototypes` (86d),
+`google-workspace` (87d), `google-workspace-prd` (87d).
+
+**✦ The Ascended** (2) — `editor` → `deskboard` (linked, successor is `editor-frontpage`);
 `mcpscan` → the MCP gateway (**not our project**, so unlinked).
 
-**◇ The Dormant** (4) — `playtester`, `minime`, `manydevs`, `deskboard`.
+**◇ The Dormant** (5) — `mech-hangar` (33d), `minime` (35d), `giantrobotslabs` (58d),
+`manydevs` (78d), `harness-site` (82d).
 
-**◈ The Risen** (2) — `analytics` (live at `analytics.labs.ai.tech.gov.sg`, S3 origin
+**◈ The Risen** (1) — `analytics`: live at `analytics.labs.ai.tech.gov.sg`, S3 origin
 `gt-aipgm-aiap-analytics-dashboard-s3`, untouched since 2026-06-10, **no matching repo in
-`projects/`**); `aperture` staging (`E1U5V6MYXQF9KH` enabled with an EC2 origin but **no alias
-attached** — unroutable and still holding an origin).
+`projects/`**.
 
-**† The Fallen** (2) — `harness-site` (`EMO9X8CFANGBY`, disabled since 2026-05-04);
-`aperture` (`E3O18C5JCTR8KU`, disabled 2026-07-24).
+**† The Fallen** (12) — `promarket` (91d), `build-solver` (93d), `doc-generator` (101d),
+`wowdocs` (101d), `aiap-api-server` (102d), `cortex` (102d), `devenv-gateway` (103d), `VOX` (105d),
+`build-for-build` (106d), `assistantai-landing` (107d), `terra-dashboard` (108d), `how-can` (113d).
 
-Considered and **rejected** for The Ascended, recorded so the question isn't reopened blind:
-`continuum-plan2`, `terra-dashboard`, `ltm-src`. Each had circumstantial evidence of absorption;
-none was confirmed. `govbrain-fauxdesk` carries a `TEARDOWN.md` but still commits daily — it is
-neither ascended nor fallen yet, so it stays off the board.
+Corrections made during design, recorded so they are not re-derived wrongly later:
 
-Blurbs are lifted from each project's own `ABOUT.md` so the dashboard and the repo agree.
+- **`aperture` is not a project.** It is `compliance-api-dashboard`'s TechPass auth codename. Per
+  that project's `ABOUT.md` (2026-07-24): *"the `aperture.ai.tech.gov.sg` domain was handed to a
+  different GovTech team's product."* Its two distributions (`E3O18C5JCTR8KU` disabled,
+  `E1U5V6MYXQF9KH` enabled with an EC2 origin and **no alias**) are orphaned infrastructure of a
+  living project. `E1U5V6MYXQF9KH` is still billing and is worth cleaning up — separately from
+  this work.
+- **`harness-site` is alive**, served by `E1WY9WOYTKO4KT` at `harness.ai.tech.gov.sg`. The
+  disabled `EMO9X8CFANGBY` is merely its old ALB-origin deployment.
+- **Rejected for The Ascended**: `continuum-plan2`, `terra-dashboard`, `ltm-src` — circumstantial
+  evidence of absorption, none confirmed. `govbrain-fauxdesk` has a `TEARDOWN.md` but commits
+  daily; it is seeded `living` like any other active repo.
+
+Blurbs are lifted from each project's own `ABOUT.md` (or `README.md` where there is no ABOUT) so
+the dashboard and the repo agree. Repos too thin to describe get their one-line README title and
+are flagged in the build task for you to reword.
+
+### 3.5 Tier overrides — drag-and-drop re-tiering
+
+The seed rule is mechanical and will misfile projects. Rather than hand-editing JSON, the board is
+directly editable.
+
+**Mechanics.** In edit mode, cards become draggable and tier sections become drop targets.
+Dropping a card writes `{slug: tier}` into a `labs-dash:overrides` localStorage entry, which is
+layered over `projects.json` at render time. The committed file is never mutated at runtime.
+
+**Persistence is per-browser, by design.** An override affects only the browser that made it. This
+is what makes "for me alone" true without any server-side authorization: there is no shared write
+path to abuse. The cost is that a re-tiering is not visible to anyone else until it is committed.
+
+**Export closes the loop.** A `copy projects.json` action emits the full roster with overrides
+applied, formatted exactly as the committed file, for pasting back into `src/data/projects.json`.
+Committing it makes the change canonical and lets the override be cleared. A `reset overrides`
+action drops all local changes.
+
+**Edit mode is off by default** and enabled by `?edit=1`. When enabled, the page attempts to read
+the Cognito ID token from `document.cookie`
+(`CognitoIdentityServiceProvider.<clientId>.<user>.idToken` — `cognito-at-edge` sets it without
+`httpOnly`, which `group-gate.js` relies on) and decodes the `email` claim. Editing is offered only
+when that email matches the owner address baked in at build time.
+
+> **This is a UX affordance, not a security control.** A determined viewer can edit their own
+> localStorage or bypass the check in devtools. That is acceptable precisely because overrides are
+> local-only and cannot affect another viewer or the deployed artifact. It must never be
+> represented as authorization. If shared, authoritative re-tiering is ever wanted, that is the
+> DynamoDB design that was explicitly rejected here, and it would need a real authorization story.
+
+If the cookie is unreadable for any reason, edit mode degrades to "off" rather than falling open.
 
 ---
 
@@ -240,7 +373,17 @@ Sections render in fixed order — living, ascended, dormant, risen, fallen — 
 name, and realm count. Cards are a responsive grid, collapsing to one column on narrow viewports.
 
 An empty tier renders its header with a muted "none" rather than vanishing, so the five ranks
-always read as a complete taxonomy.
+always read as a complete taxonomy — and so a tier remains a visible drop target when it has been
+emptied by dragging.
+
+At 49 cards the page is long. Section headers stick to the top of the viewport while their section
+is in view, so the rank a card belongs to is always legible while scrolling, and the realm counts
+stay live as overrides move cards between ranks.
+
+**Edit mode** (§3.5) adds a persistent bar: a drag affordance on each card, `copy projects.json`,
+`reset overrides`, and a count of pending local changes. Its presence must be unmistakable — an
+edited board that looks identical to the canonical one is a trap. Cards carrying an override are
+marked, so what has been moved locally is never ambiguous.
 
 ---
 
@@ -259,6 +402,8 @@ construction. An animation runtime would add bundle weight and buy nothing.
 | **Ascended ambient** | Pale gold rather than ember; a slow upward drift of light, ~6s, distinct from Living's breathe. Reads as rising, not pulsing. |
 | **Risen ambient** | Faint irregular flicker — the tier's whole point, expressed in motion. |
 | **Fallen** | Desaturated, static, recessed. No ambient at all. Stillness is the signal. |
+| **Drag (edit mode)** | Grabbed card lifts to 1.03 scale with a raised shadow and follows the pointer; remaining cards reflow with a ~180ms transition so the gap opens before the drop, not after. The hovered tier section brightens its border to show the target. Drop settles over ~220ms. |
+| **Drag cancel** | Escape or a drop outside any section returns the card to its origin along the same easing — never a jump cut, so a mis-drag is legible as "nothing happened". |
 
 **Reduced motion:** `@media (prefers-reduced-motion: reduce)` removes every transform and every
 ambient loop, retaining opacity transitions only. This is a hard requirement, not a nicety, and it
@@ -275,7 +420,9 @@ Cursor-tracking glow updates a custom property on `pointermove`, throttled to
 |---|---|
 | **Vitest — data** | Every `tier` is valid; slugs unique and non-empty; blurbs ≤ 100 chars; every `host` parses as a URL; no `fallen` card carries a live link; `absorbedInto` present exactly when `tier === 'ascended'`; every `absorbedInto.slug` resolves to a real roster entry |
 | **Vitest — render** | Cards land in the right section, in the fixed five-rank order; counts match; unhosted cards render `⌀ UNSUMMONED` and are not anchors; ascended cards render `⟶ ascended into …`, link when the successor is a hosted roster entry and are inert when it is not; empty tiers still render a header |
-| **Playwright** | Screenshot per section state, hover state, keyboard focus state, reduced-motion render, narrow viewport |
+| **Vitest — overrides** | An override moves a card between tiers and updates both realm counts; an override for an unknown slug is ignored rather than crashing the render; corrupt localStorage JSON falls back to the committed seed; `reset` restores seed tiers; export emits every project with overrides applied and is byte-parseable as the committed file's shape |
+| **Vitest — edit gate** | Edit mode stays off without `?edit=1`; stays off when the ID token cookie is absent, malformed, or carries a non-owner email; enables only on an owner-email match |
+| **Playwright** | Screenshot per section state, hover state, keyboard focus state, reduced-motion render, narrow viewport, edit-mode bar, and a drag that re-tiers a card and persists across reload |
 | **`tsc --noEmit`** | Clean before commit |
 
 Artefacts land in `tests/<task-id>/` per the Terra convention.
@@ -294,26 +441,38 @@ build → aws s3 sync → cloudfront create-invalidation
 **Resource tagging** — every resource created gets `Project=labs-dash`, `Owner=ng_shangru`,
 `Environment=prd` at creation time.
 
-**Sequencing.** The certificate and the alias both wait on the zone owner. So:
+**Sequencing.** Per §2.4 the certificate exists and the DNS record already resolves, so there is no
+zone-owner gate and the distribution is created with its alias and certificate attached from the
+outset:
 
-1. Create bucket, distribution (no alias), OAC, WAF ACL, app client, edge function.
-2. Verify end-to-end over `<dist>.cloudfront.net` using callback URL 2 — IP fence blocks a
-   non-corp address, TechPass login succeeds from a corp address, cards render.
-3. Request the ACM cert in `us-east-1`; hand the validation CNAME to the zone owner.
-4. Once validated: attach the cert and the `labs.ai.tech.gov.sg` alias, hand over the alias CNAME.
-5. Once the domain resolves: drop callback URL 2.
+1. Create the private bucket + OAC; build and sync the site.
+2. Create the WAF ACL (`us-east-1`, scope `CLOUDFRONT`) with the shared IP-set allow rule.
+3. Create the distribution with alias `labs.ai.tech.gov.sg`, cert `f053a5a8…`, the WAF ACL, and
+   the OAC origin. **If this returns `CNAMEAlreadyExists`, stop** — that is the §2.4 fallback and
+   needs a zone-owner conversation, not a workaround.
+4. Create the `dash` app client; enable TechPass on it surgically (§2.3).
+5. Write `provision-edge.sh` (§2.5); build and associate the edge function.
+6. Verify: TLS now terminates, a corp address gets the TechPass login, a non-corp address is
+   blocked by WAF before auth, and the board renders after sign-in.
 
-Steps 1–3 are unblocked today. Steps 4–5 are gated on someone else and must be reported as
-pending, never as done.
+Step 3 is the single point where an external dependency can still surface. Everything else is
+within this account.
 
 ---
 
 ## 8. Deliberate non-goals
 
-- **No health probing.** Status is curated (§3.1). Revisit only if the roster grows past the
-  point where a human keeps it honest.
+- **No health probing.** Tiers are seeded mechanically from commit recency and hosting (§3.3),
+  then corrected by hand (§3.5). No probe can tell dormant from zombified, so a human stays in the
+  loop by design. Revisit only if 49 cards proves more than a human will keep honest.
 - **No router.** One page. Adding one now would be speculative.
-- **No CMS or admin UI.** Editing `projects.json` and redeploying is the workflow.
+- **No CMS or server-side admin.** Drag-and-drop re-tiering (§3.5) is deliberately the *smallest*
+  thing that solves misfiled projects: local overrides plus an export to commit. It is not an
+  editor — blurbs, hosts, names and roster membership are still changed by editing
+  `projects.json` and redeploying.
+- **No shared/authoritative overrides.** Explicitly rejected in favour of localStorage. Revisit
+  only if more than one person needs to re-tier, at which point it needs a real authorization
+  story, not a widened client-side check.
 - **Unfurl metadata is included but will not work.** House convention requires OG and Twitter Card
   tags on every frontend, so `index.html` carries them plus a default share image. Behind an IP
   fence and an auth gate, **no unfurler can ever fetch them** — Slack will render a bare link. The
