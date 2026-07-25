@@ -66,6 +66,17 @@ disk for new/removed repos but preserves your `omit` list and any hand-written `
 `tier`, `absorbedInto` and `note`. Only genuinely new projects arrive with an empty blurb. It requires `.git` to be a **directory** —
 do not relax that to `existsSync`, which picks up `continuum-plan2`'s worktree pointer.
 
+## Adding or replacing art
+
+- **Card art:** put a JPEG at `src/assets/cards/<slug>.jpg`. It only renders if that project is
+  `living` **and** has a `host`. Nothing to register — it is globbed at build time.
+- **Tier backdrop:** put a JPEG at `src/assets/tiers/<tier>.jpg`.
+- Generate with the `imagine` CLI (`--style "Cel-shaded game"`), then downscale: cards to 720px
+  wide, backdrops to 1280px, JPEG q55-60. They are dimmed backgrounds, not hero images.
+- **Re-measure contrast after adding card art.** The AA floor is computed against the
+  *brightest pixel* in the image, not the average, and the poster-tile gradient stops in
+  `app.css` are tuned to it. A brighter image moves the threshold.
+
 ## Shipping
 
 ```bash

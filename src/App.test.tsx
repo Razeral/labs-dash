@@ -4,6 +4,7 @@ import { App } from './App'
 import { STORAGE_KEY } from './overrides'
 import { TIERS, TIER_META } from './types'
 import { roster, allProjects } from './data/roster'
+import { tierArt } from './data/tierArt'
 import type { Project } from './types'
 import { FakeIntersectionObserver } from './test-setup'
 import * as auth from './auth'
@@ -255,5 +256,23 @@ describe('App', () => {
     expect(section.classList.contains('tier--drop-target')).toBe(false)
 
     expect(isRevealed(section)).toBe(true)
+  })
+
+  it('mounts one backdrop layer per rank that has art, with exactly one active', () => {
+    const { container } = render(<App />)
+    const layers = container.querySelectorAll('.backdrop__layer')
+    expect(layers).toHaveLength(Object.keys(tierArt).length)
+    expect(container.querySelectorAll('.backdrop__layer.is-active')).toHaveLength(
+      tierArt.living ? 1 : 0
+    )
+  })
+
+  it('hides the backdrop from assistive tech', () => {
+    const { container } = render(<App />)
+    const backdrop = container.querySelector('.backdrop')
+    if (Object.keys(tierArt).length > 0) {
+      expect(backdrop).not.toBeNull()
+      expect(backdrop).toHaveAttribute('aria-hidden', 'true')
+    }
   })
 })

@@ -79,6 +79,31 @@ undocumented: `wowdocs`'s README is byte-identical to `doc-generator`'s (title s
 `# doc-generator`), and `VOX` is a vendored clone of the external OpenBMB/VoxCPM2 project, so
 describing it as first-party would misrepresent it.
 
+## Art
+
+Two layers of generated cel-shaded art, both produced with the `imagine` CLI from each
+project's own description and committed as JPEGs.
+
+**Card art** — `src/assets/cards/<slug>.jpg`, discovered by `import.meta.glob`, so dropping a
+file in is the whole act of adding art; there is no registry to keep in sync. It renders only
+for a **living** project that also has a **host** (enforced in `App.tsx`, not by the file's
+presence) — a dormant or fallen card with lush art would fight the stillness those ranks rely on.
+
+Cards with art are **poster tiles**: the art runs full-bleed and near-undimmed across the top,
+and the text cluster is pushed to the bottom onto a plateau of `--ground`. The gradient stops
+are load-bearing. Text occupies the bottom ~48%, where the scrim is >= 0.96, which measures
+**5.92:1** for `.card__blurb`/`.card__meta` against the brightest pixel in any current image.
+An earlier revision dimmed the *whole* card instead and had to sit at 0.88 to stay legible —
+which is why the art was barely visible. **The floor is the brightest pixel, not the average:
+re-measure when adding brighter art.**
+
+**Tier backdrops** — `src/assets/tiers/<tier>.jpg`, one per rank, crossfading behind everything
+as that rank scrolls through the middle of the viewport (a second `IntersectionObserver` with
+`rootMargin: -45% 0px -45%`, so exactly one rank is current at a time). All five layers mount at
+once and only opacity animates, keeping it on the compositor; swapping one element's
+`background-image` would flash while the new image decoded. Active opacity is 0.14 under a
+vignette. A rank with no image contributes no layer and falls back to plain ground.
+
 ## Drag-and-drop re-tiering
 
 Owner-only. **The trigger is `https://labs.ai.tech.gov.sg/#edit` — a fragment, not a query

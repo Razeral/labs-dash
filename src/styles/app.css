@@ -591,39 +591,96 @@ body {
   }
 }
 
-/* ── Card art ─────────────────────────────────────────────────────────────────
-   Living cards that actually have a host carry a cel-shaded background, set by the
-   component as --art. The scrim is NOT optional: the card's text contrast was measured
-   and fixed at AA against a near-ground backdrop, and a bright patch of art behind
-   .card__meta would undo that. Layering a 0.90 -> 0.96 wash of --ground over the image
-   keeps the worst-case backdrop darker than --surface, so contrast can only improve.
-   Worst case at 0.88: a pure-white pixel resolves to ~rgb(39,39,39); --parchment-dim on that
-   is 4.9:1, still clear of AA. Do not raise the top stop past 0.88 without re-measuring.
-   The gradient is heavier at the bottom, where the meta line sits. */
+/* ── Card art — poster tile ───────────────────────────────────────────────────
+   Living cards that have a host carry a cel-shaded background, set by the component as
+   --art. The art runs full-bleed and near-undimmed across the top; the text cluster is
+   pushed to the bottom and sits on a plateau of --ground so it never overlaps bright art.
+
+   The gradient stops are load-bearing, not decorative. Text occupies the bottom ~48% of
+   the card, and across that whole band the scrim is >= 0.96, which puts .card__blurb and
+   .card__meta at ~5.9:1 over the brightest pixel in any current card image. The art only
+   becomes visible above that band. An earlier revision dimmed the WHOLE card instead and
+   had to sit at 0.88 to stay legible, which is why the art was barely visible.
+
+   Re-measure if you add brighter art: the floor is the brightest pixel, not the average. */
 .card--art {
+  min-height: 232px;
   background-image:
-    linear-gradient(180deg, rgba(10, 9, 8, 0.88) 0%, rgba(10, 9, 8, 0.96) 100%),
+    linear-gradient(
+      to top,
+      rgba(10, 9, 8, 0.97) 0%,
+      rgba(10, 9, 8, 0.96) 48%,
+      rgba(10, 9, 8, 0.45) 72%,
+      rgba(10, 9, 8, 0.12) 100%
+    ),
     var(--art);
   background-size: cover, cover;
   background-position: center, center;
   background-repeat: no-repeat, no-repeat;
 }
 
-/* On hover the scrim lightens, but only to 0.87. That number is measured, not chosen: against
-   the brightest pixel of every generated card image, 0.87 puts .card__blurb/.card__meta at
-   4.64:1 and 0.80 puts it at 3.64:1 — below AA. An earlier revision shipped 0.80 and the
-   contrast check caught it. Re-measure before lowering it, and re-measure when adding art:
-   a brighter image moves this threshold. */
+/* Push the text cluster to the bottom so the art owns the top. .card__meta carries
+   margin-top:auto on a normal card to bottom-align the host line; on a poster tile the
+   whole block moves together instead, so the auto moves up to the name. */
+.card--art .card__name { margin-top: auto; }
+.card--art .card__meta { margin-top: 0; }
+
+/* Hover lifts the scrim over the ART only. The text plateau (0% - 48%) is untouched, so
+   contrast cannot move. */
 @media (hover: hover) and (pointer: fine) {
   .card--art.card--linked:hover {
     background-image:
-      linear-gradient(180deg, rgba(10, 9, 8, 0.87) 0%, rgba(10, 9, 8, 0.94) 100%),
+      linear-gradient(
+        to top,
+        rgba(10, 9, 8, 0.97) 0%,
+        rgba(10, 9, 8, 0.96) 48%,
+        rgba(10, 9, 8, 0.32) 72%,
+        rgba(10, 9, 8, 0.02) 100%
+      ),
       var(--art);
   }
 }
 
+/* ── Tier backdrop ────────────────────────────────────────────────────────────
+   One atmospheric image per rank, crossfading as that rank scrolls through the middle of
+   the viewport. It sits behind everything at low opacity: the cards now carry their own
+   art, so the backdrop's job is to tint the room, not to compete for attention.
+
+   All five layers are mounted and only opacity changes, which keeps the transition on the
+   compositor. The vignette on top keeps the edges dark so the sticky rank headers and the
+   mono host lines stay legible over any part of any image. */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.backdrop__layer {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transition: opacity 700ms var(--ease-out);
+}
+
+.backdrop__layer.is-active { opacity: 0.14; }
+
+/* Sits above the layers, below the content: darkens the edges and the top band where the
+   sticky headers park. */
+.backdrop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to bottom, var(--ground) 0%, transparent 22%, transparent 78%, var(--ground) 100%),
+    radial-gradient(120% 90% at 50% 40%, transparent 0%, rgba(10, 9, 8, 0.72) 100%);
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .card--art.card--linked:hover { background-image:
-      linear-gradient(180deg, rgba(10, 9, 8, 0.88) 0%, rgba(10, 9, 8, 0.96) 100%),
-      var(--art); }
+  /* The crossfade is opacity-only, which the reduced-motion rule already permits — but slow
+     it right down so it reads as a state change rather than motion. */
+  .backdrop__layer { transition-duration: 1200ms !important; }
 }

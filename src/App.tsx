@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { TierSection } from './components/TierSection'
 import { EditBar } from './components/EditBar'
+import { Backdrop } from './components/Backdrop'
 import type { CopyState } from './components/EditBar'
 import { readOverrides, writeOverride, clearOverrides, applyOverrides, exportRoster } from './overrides'
 import { isEditEnabled } from './auth'
@@ -8,6 +9,7 @@ import { TIERS, acceptsDrop } from './types'
 import type { Tier } from './types'
 import { roster, allProjects, omit } from './data/roster'
 import { cardArt } from './data/cardArt'
+import { TIERS as ALL_TIERS } from './types'
 import './styles/tokens.css'
 import './styles/app.css'
 
@@ -17,6 +19,7 @@ const COPY_STATUS_TIMEOUT_MS = 2000
 export const App = () => {
   const [overrides, setOverrides] = useState(() => readOverrides())
   const [copyState, setCopyState] = useState<CopyState>('idle')
+  const [activeTier, setActiveTier] = useState<Tier>('living')
   const dragged = useRef<string | null>(null)
   const copyTimer = useRef<number | null>(null)
 
@@ -50,6 +53,27 @@ export const App = () => {
     () => Object.fromEntries(roster.filter((p) => p.host).map((p) => [p.slug, p.host as string])),
     []
   )
+
+  // Which rank owns the backdrop. A second observer with a narrow band around the viewport's
+  // middle means exactly one section is "current" at a time, so the backdrop crossfades as a
+  // rank scrolls through the centre rather than flickering at every section boundary.
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined') return
+    const sections = [...document.querySelectorAll('.tier')]
+    if (sections.length === 0) return
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue
+          const tier = ALL_TIERS.find((t) => e.target.classList.contains(`tier--${t}`))
+          if (tier) setActiveTier(tier)
+        }
+      },
+      { rootMargin: '-45% 0px -45% 0px' }
+    )
+    sections.forEach((el) => io.observe(el))
+    return () => io.disconnect()
+  }, [])
 
   // The reveal marker is an attribute, not a class. TierSection's className is
   // React-owned and is rewritten whenever it toggles `tier--drop-target`, which
@@ -168,6 +192,7 @@ export const App = () => {
 
   return (
     <main className="board">
+      <Backdrop active={activeTier} />
       <header className="board__header">
         <h1 className="board__title">The Labs</h1>
         <p className="board__sub">A bestiary of {roster.length} works, ranked by vitality.</p>
