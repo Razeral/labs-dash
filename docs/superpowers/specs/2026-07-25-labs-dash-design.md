@@ -98,9 +98,17 @@ aws cognito-idp update-user-pool-client \
   --allowed-o-auth-flows code \
   --allowed-o-auth-scopes openid email profile \
   --allowed-o-auth-flows-user-pool-client \
-  --callback-urls https://labs.ai.tech.gov.sg/_callback https://labs.ai.tech.gov.sg/ \
-  --logout-urls https://labs.ai.tech.gov.sg/
+  --callback-urls https://labs.ai.tech.gov.sg https://labs.ai.tech.gov.sg/ https://labs.ai.tech.gov.sg/_callback \
+  --logout-urls https://labs.ai.tech.gov.sg https://labs.ai.tech.gov.sg/
 ```
+
+**All three callback forms are required, and the bare origin is the one that actually matters.**
+`update-user-pool-client` **replaces** the callback list rather than merging, so registering only
+`/_callback` and `/` silently drops the bare origin — and `cognito-at-edge` builds its
+`redirect_uri` as exactly `https://labs.ai.tech.gov.sg` with no trailing slash and no path. Dropping
+it produces `redirect_mismatch` on every login. Observed live during deployment: the edge's 302
+carried `redirect_uri=https%3A%2F%2Flabs.ai.tech.gov.sg`. `provision-appclient.sh` gets this right
+(it registers `${BASE}`, `${BASE}/`, `${BASE}/_callback`); a hand-rolled update must match it.
 
 The TechPass IdP already exists on the pool, so no IdP create/update is needed — only attaching it
 to this client.
