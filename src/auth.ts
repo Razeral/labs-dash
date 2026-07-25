@@ -30,8 +30,26 @@ export const readEmailFromCookie = (cookie: string): string | null => {
   }
 }
 
-export const isEditEnabled = (cookie: string, search: string, ownerEmail: string): boolean => {
-  if (!new URLSearchParams(search).has('edit')) return false
+// `#edit` is the documented trigger, and the reason is the auth round-trip rather than taste.
+// cognito-at-edge builds its post-login redirect as
+//   redirectPath = request.uri + encodeURIComponent('?' + request.querystring)
+// and (with CSRF off, which is how labs-auth configures it) uses that string verbatim as the
+// `state`, then as the `location` on the way back. So arriving at `/?edit=1` unauthenticated
+// lands you on the literal PATH `/%3Fedit%3D1` after login: `location.search` is empty, edit
+// mode is off, and the path 404s from S3. A fragment is never sent to the server and browsers
+// carry it across redirects, so it survives the login untouched.
+//
+// `?edit=1` is still honoured for an already-authenticated session, where no redirect occurs.
+const editRequested = (search: string, hash: string): boolean =>
+  new URLSearchParams(search).has('edit') || hash.replace(/^#/, '') === 'edit'
+
+export const isEditEnabled = (
+  cookie: string,
+  search: string,
+  hash: string,
+  ownerEmail: string
+): boolean => {
+  if (!editRequested(search, hash)) return false
   // Redundant with the email check below, but kept explicitly to make an unset
   // VITE_OWNER_EMAIL (deploy slip) fail closed by construction.
   if (!ownerEmail) return false

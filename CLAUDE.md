@@ -82,6 +82,14 @@ Currently open to any TechPass user who can sign in. To restrict, no code change
 Note that `cognito:groups` is baked into the ID token when issued, so a user added to the group
 while already signed in keeps their old token and gets a 403 until a clean re-login.
 
+## Edit mode
+
+Open `https://labs.ai.tech.gov.sg/#edit`. **Use the fragment, not `?edit=1`.** A query string does
+not survive the login redirect — `cognito-at-edge` percent-encodes it into the redirect *path*, so
+a fresh login from `/?edit=1` lands on `/%3Fedit%3D1` with an empty `location.search` and no edit
+mode (and a 404). See ABOUT.md for the mechanism. `?edit=1` works only when you are already
+authenticated.
+
 ## Don't
 
 - Don't treat the client-side owner check as authorization. It gates a localStorage-only affordance.
@@ -89,5 +97,7 @@ while already signed in keeps their old token and gets a 403 until a clean re-lo
   attribute erases it and leaves whole tiers permanently invisible. There is a guard test.
 - Don't claim link previews work. `index.html` carries OG and Twitter Card tags per house
   convention, but the site is IP-fenced and auth-gated so no unfurler can ever fetch them.
+- Don't move the edit trigger back to a query-parameter-only check. The auth redirect destroys
+  query strings; there is a regression test pinning the empty-search-and-hash case.
 - Don't add a backend to make overrides shared. That was considered and rejected; it needs a real
   authorization story, not a widened client-side check.

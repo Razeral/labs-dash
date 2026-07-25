@@ -236,7 +236,11 @@
     "slug": "offside",
     "name": "Offside",
     "blurb": "Dependency-free stateful guardrail. Catches multi-turn exploits a per-turn scan can't",
-    "tier": "living"
+    "tier": "ascended",
+    "absorbedInto": {
+      "name": "Compliance API Dashboard",
+      "slug": "compliance-api-dashboard"
+    }
   },
   {
     "slug": "playtester",

@@ -61,41 +61,58 @@ describe('readEmailFromCookie', () => {
 
 describe('isEditEnabled', () => {
   it('enables for the owner with the edit flag', () => {
-    expect(isEditEnabled(cookieWith(OWNER), '?edit=1', OWNER)).toBe(true)
+    expect(isEditEnabled(cookieWith(OWNER), '?edit=1', '', OWNER)).toBe(true)
   })
 
   it('stays off without the edit flag', () => {
-    expect(isEditEnabled(cookieWith(OWNER), '', OWNER)).toBe(false)
+    expect(isEditEnabled(cookieWith(OWNER), '', '', OWNER)).toBe(false)
   })
 
   it('stays off for a non-owner even with the flag', () => {
-    expect(isEditEnabled(cookieWith('someone@else.gov.sg'), '?edit=1', OWNER)).toBe(false)
+    expect(isEditEnabled(cookieWith('someone@else.gov.sg'), '?edit=1', '', OWNER)).toBe(false)
   })
 
   it('stays off when the cookie is missing', () => {
-    expect(isEditEnabled('', '?edit=1', OWNER)).toBe(false)
+    expect(isEditEnabled('', '?edit=1', '', OWNER)).toBe(false)
   })
 
   it('is case-insensitive about the owner email', () => {
-    expect(isEditEnabled(cookieWith('OWNER@TECH.GOV.SG'), '?edit=1', OWNER)).toBe(true)
+    expect(isEditEnabled(cookieWith('OWNER@TECH.GOV.SG'), '?edit=1', '', OWNER)).toBe(true)
   })
 
   it('never enables edit when ownerEmail is empty (deploy-slip guard)', () => {
     // If VITE_OWNER_EMAIL is not set at build time, ownerEmail becomes ''.
     // This must never allow edit mode, even with a valid cookie and edit flag.
-    expect(isEditEnabled(cookieWith(OWNER), '?edit=1', '')).toBe(false)
+    expect(isEditEnabled(cookieWith(OWNER), '?edit=1', '', '')).toBe(false)
   })
 
   it('never enables edit when decoded email is empty', () => {
     // A cookie with an empty email claim must never enable edit mode.
     // This also covers the case where both email and ownerEmail are empty.
     const emptyEmailCookie = `CognitoIdentityServiceProvider.abc123.${OWNER}.idToken=${fakeIdToken('')}`
-    expect(isEditEnabled(emptyEmailCookie, '?edit=1', '')).toBe(false)
+    expect(isEditEnabled(emptyEmailCookie, '?edit=1', '', '')).toBe(false)
+  })
+
+  it('enables for the owner via the #edit fragment', () => {
+    // The documented trigger. A fragment survives the cognito-at-edge login redirect;
+    // a query string does not.
+    expect(isEditEnabled(cookieWith(OWNER), '', '#edit', OWNER)).toBe(true)
+  })
+
+  it('stays off for an unrelated fragment', () => {
+    expect(isEditEnabled(cookieWith(OWNER), '', '#something', OWNER)).toBe(false)
+  })
+
+  it('stays off on the path cognito-at-edge produces when ?edit=1 survives a login', () => {
+    // REGRESSION: arriving at /?edit=1 unauthenticated lands on the literal path
+    // `/%3Fedit%3D1` after login -- search and hash are both empty, so edit must be off.
+    // This is the live bug that made drag-and-drop appear broken.
+    expect(isEditEnabled(cookieWith(OWNER), '', '', OWNER)).toBe(false)
   })
 
   it('never enables edit when the decoded email is empty and an owner is configured', () => {
     // Isolating test for the `if (!email) return false` guard.
     // With a non-empty ownerEmail, an empty decoded email must fail.
-    expect(isEditEnabled(cookieWith(''), '?edit=1', OWNER)).toBe(false)
+    expect(isEditEnabled(cookieWith(''), '?edit=1', '', OWNER)).toBe(false)
   })
 })

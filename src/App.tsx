@@ -21,7 +21,7 @@ export const App = () => {
   const copyTimer = useRef<number | null>(null)
 
   const editing = useMemo(
-    () => isEditEnabled(document.cookie, window.location.search, OWNER),
+    () => isEditEnabled(document.cookie, window.location.search, window.location.hash, OWNER),
     []
   )
 

@@ -76,7 +76,21 @@ describing it as first-party would misrepresent it.
 
 ## Drag-and-drop re-tiering
 
-Owner-only, `?edit=1`. Dropping a card writes `{slug: tier}` to `labs-dash:overrides` in
+Owner-only. **The trigger is `https://labs.ai.tech.gov.sg/#edit` — a fragment, not a query
+parameter**, and that is forced by the auth round-trip rather than preference.
+
+`cognito-at-edge` builds its post-login redirect as
+`request.uri + encodeURIComponent('?' + request.querystring)` and, with CSRF disabled (how
+`labs-auth` configures it), uses that string verbatim as the OAuth `state` and then as the
+`location` on the way back. So arriving at `/?edit=1` while unauthenticated lands you on the
+literal **path** `/%3Fedit%3D1` after login: `location.search` is empty, edit mode is correctly
+off, and the path also 404s from S3 because there is no SPA fallback. A fragment is never sent to
+the server and browsers carry it across redirects, so `#edit` survives untouched.
+
+`?edit=1` still works for an already-authenticated session, where no redirect happens. There is a
+regression test for the empty-search-and-hash case.
+
+Dropping a card writes `{slug: tier}` to `labs-dash:overrides` in
 localStorage, layered over the committed file at render time. `copy projects.json` emits the full
 roster with overrides applied for pasting back into `src/data/projects.json`; committing that makes
 the change canonical and the override can be reset.
