@@ -399,8 +399,11 @@ body {
 }
 
 /* ---------- Per-rank ambients ----------
-   Every loop animates opacity or transform only, and is desynchronised by
-   --i so a grid of them never pulses in unison. */
+   Every loop animates opacity or transform only. Two of the three are desynchronised
+   by a --i-derived negative animation-delay so a grid of them never pulses in unison:
+   Living (breathe) and Ascended (ascend). The Risen (gutter) carries NO --i offset, so
+   its stutters do fire together across the rank — a whole row guttering at once. The
+   Dormant has no loop at all, only a static recession. */
 
 .card--living::after {
   background-image: radial-gradient(120% 90% at 50% 118%, var(--ember-glow), transparent 62%);
@@ -505,7 +508,6 @@ body {
   border-color: var(--rule);
   filter: saturate(0.4);
   opacity: 0.82;
-  animation: none;
 }
 
 .card--fallen::after {

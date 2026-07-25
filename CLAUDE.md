@@ -25,7 +25,9 @@ cost time. This file is only how to act in it.
 3. `host` is a full origin, not derived from the slug — `depot` and `deskboard` live off the labs
    zone.
 4. `absorbedInto` is required exactly when `tier` is `ascended`, and any `absorbedInto.slug` must
-   resolve to another roster entry. Both are tested.
+   resolve to another roster entry. Both are tested. Because a drag cannot supply a successor,
+   **The Ascended is the one rank that is not a drop target** (`acceptsDrop` in `src/types.ts`) —
+   promoting something to it is a hand edit. Dragging a card *out* of it strips `absorbedInto`.
 5. Run `npx vitest run` — the data tests catch length, duplicate slugs, bad tiers, unparseable
    hosts, and fallen entries carrying live links.
 
@@ -60,8 +62,13 @@ onboard or change one client, use a targeted `aws cognito-idp update-user-pool-c
 register **all three** callback forms (bare origin, trailing slash, `/_callback`), because
 `update-user-pool-client` replaces rather than merges.
 
-The access cutover is `labs-auth/provision-edge.sh dash EFEV1TL1LF6Y3`. Verify a login immediately
-afterwards — Lambda@Edge rollback propagates in 15–30 minutes, so a broken gate is slow to undo.
+The access cutover is `labs-auth/provision-edge.sh dash EFEV1TL1LF6Y3`. Both arguments are
+required. Verify a login immediately afterwards — Lambda@Edge rollback propagates in 15–30 minutes,
+so a broken gate is slow to undo.
+
+It gates the default cache behavior **and every `CacheBehaviors` entry**, and halts without writing
+if any behavior already names a different Lambda function. If it halts, do not force past it — two
+gate implementations on one distribution is worse than the state you started in.
 
 ## Restricting access to a Cognito group
 

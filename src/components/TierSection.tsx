@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Card } from './Card'
-import { TIER_META } from '../types'
+import { TIER_META, acceptsDrop } from '../types'
 import type { Project, Tier, TierOverrides } from '../types'
 
 type Props = {
@@ -18,9 +18,12 @@ export const TierSection = ({ tier, projects, hostBySlug, editing, overrides, on
   const count = projects.length
   const [dropTarget, setDropTarget] = useState(false)
 
-  // Only an editing session can receive a drop, so only an editing session
-  // advertises where the card would land.
-  const className = ['tier', `tier--${tier}`, editing && dropTarget ? 'tier--drop-target' : '']
+  // Only an editing session can receive a drop, and The Ascended can never receive one at
+  // all — see acceptsDrop in types.ts. A rank that cannot take the card must not advertise
+  // that it can, so the same flag gates the drop-target styling.
+  const droppable = editing && acceptsDrop(tier)
+
+  const className = ['tier', `tier--${tier}`, droppable && dropTarget ? 'tier--drop-target' : '']
     .filter(Boolean)
     .join(' ')
 
@@ -28,7 +31,7 @@ export const TierSection = ({ tier, projects, hostBySlug, editing, overrides, on
     <section
       className={className}
       onDragOver={(e) => {
-        if (!editing) return
+        if (!droppable) return
         e.preventDefault()
         setDropTarget(true)
       }}
@@ -37,7 +40,14 @@ export const TierSection = ({ tier, projects, hostBySlug, editing, overrides, on
         if (e.currentTarget.contains(e.relatedTarget as Node | null)) return
         setDropTarget(false)
       }}
-      onDrop={(e) => { e.preventDefault(); setDropTarget(false); onDrop(tier) }}
+      onDrop={(e) => {
+        // Not reachable in a real browser without a preventDefault'd dragover, but a
+        // synthesised drop must not re-tier either.
+        if (!droppable) return
+        e.preventDefault()
+        setDropTarget(false)
+        onDrop(tier)
+      }}
     >
       <header className="tier__header">
         <span className="tier__glyph" aria-hidden="true">{meta.glyph}</span>

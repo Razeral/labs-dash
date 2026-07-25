@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { App } from './App'
 import { STORAGE_KEY } from './overrides'
 import { TIERS, TIER_META } from './types'
+import type { Project } from './types'
 import { FakeIntersectionObserver } from './test-setup'
 import * as auth from './auth'
 
@@ -77,6 +78,84 @@ describe('App', () => {
     const { container: reloaded } = render(<App />)
     const fallenAfterReload = reloaded.querySelector('.tier--fallen')
     expect(fallenAfterReload?.querySelector('[data-slug="govbrain"]')).not.toBeNull()
+  })
+
+  it('leaves a card where it was when dropped on the ascended', () => {
+    enableEditing()
+    const { container } = render(<App />)
+
+    const card = container.querySelector('[data-slug="govbrain"]') as HTMLElement
+    const living = container.querySelector('.tier--living') as HTMLElement
+    const ascended = container.querySelector('.tier--ascended') as HTMLElement
+    const ascendedCountBefore = ascended.querySelectorAll('.card').length
+
+    fireEvent.dragStart(card)
+    fireEvent.drop(ascended)
+
+    expect(living.querySelector('[data-slug="govbrain"]')).not.toBeNull()
+    expect(ascended.querySelector('[data-slug="govbrain"]')).toBeNull()
+    expect(ascended.querySelectorAll('.card')).toHaveLength(ascendedCountBefore)
+    expect(localStorage.getItem(STORAGE_KEY)).toBeNull()
+  })
+
+  it('never renders the literal string undefined on any card', () => {
+    enableEditing()
+    const { container } = render(<App />)
+    const ascended = container.querySelector('.tier--ascended') as HTMLElement
+    fireEvent.dragStart(ascended.querySelector('.card') as Element)
+    fireEvent.drop(container.querySelector('.tier--ascended') as HTMLElement)
+    expect(container.textContent).not.toMatch(/undefined/)
+  })
+
+  it('clears absorbedInto when an ascended card is dragged out, keeping the export valid', async () => {
+    enableEditing()
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    stubClipboard(writeText)
+    const { container } = render(<App />)
+
+    const ascended = container.querySelector('.tier--ascended') as HTMLElement
+    const card = ascended.querySelector('.card') as HTMLElement
+    const slug = card.getAttribute('data-slug') as string
+    const dormant = container.querySelector('.tier--dormant') as HTMLElement
+
+    fireEvent.dragStart(card)
+    fireEvent.drop(dormant)
+
+    const moved = dormant.querySelector(`[data-slug="${slug}"]`) as HTMLElement
+    expect(moved).not.toBeNull()
+    expect(moved.textContent).not.toMatch(/ascended into/)
+    expect(moved.textContent).not.toMatch(/undefined/)
+
+    fireEvent.click(screen.getByText(/copy projects.json/i))
+    await screen.findByText(/^copied$/i)
+    const payload = JSON.parse(writeText.mock.calls[0][0] as string) as Project[]
+
+    // The exported roster is pasted back into src/data/projects.json, so it must still pass
+    // the ascended-iff-absorbedInto invariant that projects.test.ts enforces there.
+    expect(payload.find((p) => p.slug === slug)?.absorbedInto).toBeUndefined()
+    for (const p of payload) {
+      if (p.tier === 'ascended') expect(p.absorbedInto?.name).toBeTruthy()
+      else expect(p.absorbedInto).toBeUndefined()
+    }
+  })
+
+  it('renders the seed board instead of blanking when localStorage throws', () => {
+    // A managed-browser policy or blocked site data makes the getter itself throw. This ran
+    // inside a useState initialiser with no error boundary above it, so the throw escaped
+    // render and left #root empty with no message.
+    vi.spyOn(window.localStorage, 'getItem').mockImplementation(() => {
+      throw new Error('The operation is insecure.')
+    })
+    const { container } = render(<App />)
+    expect(container.querySelectorAll('.card')).toHaveLength(49)
+    expect(container.querySelectorAll('.tier')).toHaveLength(5)
+  })
+
+  it('counts only overrides for slugs still on the roster', () => {
+    enableEditing()
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ govbrain: 'fallen', 'ghost-project': 'risen' }))
+    render(<App />)
+    expect(screen.getByText(/1 local change/i)).toBeInTheDocument()
   })
 
   it('copies the roster to the clipboard reflecting an active override', async () => {

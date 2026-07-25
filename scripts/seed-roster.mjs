@@ -1,5 +1,15 @@
+// seed-roster.mjs — re-derive src/data/projects.json from what is actually on disk.
+//
+// Run from the repo root: `node scripts/seed-roster.mjs`. It OVERWRITES projects.json and
+// deliberately leaves `name` as the slug and `blurb` empty — those are refilled by hand from
+// each project's ABOUT.md/README.md, because inventing them is worse than a placeholder.
+//
+// TWO VALUES ARE HARDCODED FOR THIS MACHINE AND THIS DATE — adjust both before re-running:
+//   ROOT  — absolute path to the Terra projects directory, not derived from cwd.
+//   TODAY — frozen so tier seeding is reproducible. Left alone, every repo ages relative to
+//           2026-07-25 rather than to now, so the living/dormant/fallen cutoffs drift.
 import { execSync } from 'node:child_process'
-import { readdirSync, statSync, readFileSync, writeFileSync } from 'node:fs'
+import { readdirSync, statSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const ROOT = '/Users/aip/Code/Terra/projects'

@@ -34,6 +34,13 @@ describe('projects.json', () => {
     }
   })
 
+  it('never gives a fallen entry a live link', () => {
+    for (const p of roster.filter((x) => x.tier === 'fallen')) {
+      expect(p.host).toBeUndefined()
+      expect(p.absorbedInto).toBeUndefined()
+    }
+  })
+
   it('carries absorbedInto exactly when ascended', () => {
     for (const p of roster) {
       if (p.tier === 'ascended') expect(p.absorbedInto?.name).toBeTruthy()

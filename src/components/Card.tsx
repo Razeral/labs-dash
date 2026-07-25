@@ -18,8 +18,12 @@ export const Card = ({ project, successorHost, draggable, overridden, onDragStar
     : tier === 'ascended' ? successorHost
     : host
 
+  // An ascended card always names its successor in well-formed data (projects.test.ts
+  // enforces it). The unnamed branch exists because interpolating a missing name printed the
+  // literal string "undefined" on the card — a rendering bug should degrade to the glyph, not
+  // to a JavaScript artefact.
   const meta =
-    tier === 'ascended' ? `⟶ ascended into ${absorbedInto?.name}`
+    tier === 'ascended' ? (absorbedInto?.name ? `⟶ ascended into ${absorbedInto.name}` : '✦ ascended')
     : tier === 'fallen' ? '† no longer answers'
     : host ? hostLabel(host)
     : '⌀ UNSUMMONED'

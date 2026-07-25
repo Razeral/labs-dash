@@ -7,9 +7,9 @@
   --parchment-dim: #9a9083;
   --parchment-faint: #5d564e;
   --ember: #d4763a;
-  --ember-glow: rgba(212, 118, 58, 0.28);
+  --ember-glow: color-mix(in srgb, var(--ember) 28%, transparent);
   --gold: #d9b871;
-  --gold-glow: rgba(217, 184, 113, 0.22);
+  --gold-glow: color-mix(in srgb, var(--gold) 22%, transparent);
 
   --font-display: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
   --font-body: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;

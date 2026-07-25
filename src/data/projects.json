@@ -194,7 +194,7 @@
     "name": "Limn",
     "blurb": "No description recorded.",
     "tier": "living",
-    "note": "No ABOUT.md; README is empty."
+    "note": "No ABOUT.md or README present."
   },
   {
     "slug": "ltm-src",

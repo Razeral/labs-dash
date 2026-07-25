@@ -31,6 +31,12 @@ describe('Card', () => {
     expect(screen.getByRole('link')).toHaveAttribute('href', 'https://deskboard.example')
   })
 
+  it('falls back to the glyph rather than printing undefined for an unnamed successor', () => {
+    render(<Card project={{ ...base, tier: 'ascended' }} draggable={false} overridden={false} onDragStart={noop} />)
+    expect(screen.getByText('✦ ascended')).toBeInTheDocument()
+    expect(screen.queryByText(/undefined/)).toBeNull()
+  })
+
   it('does not link an ascended project whose successor is off-roster', () => {
     const p: Project = { ...base, tier: 'ascended', absorbedInto: { name: 'the MCP gateway' } }
     render(<Card project={p} draggable={false} overridden={false} onDragStart={noop} />)

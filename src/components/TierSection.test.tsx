@@ -38,6 +38,39 @@ describe('TierSection', () => {
     expect(onDrop).toHaveBeenCalledWith('dormant')
   })
 
+  it('never fires onDrop for the ascended, which no drag can supply a successor for', () => {
+    const onDrop = vi.fn()
+    const { container } = render(<TierSection tier="ascended" projects={[]} hostBySlug={{}} editing overrides={{}} onDragStart={noop} onDrop={onDrop} />)
+    fireEvent.drop(container.querySelector('.tier') as Element)
+    expect(onDrop).not.toHaveBeenCalled()
+  })
+
+  it('does not accept a dragover on the ascended even while editing', () => {
+    const { container } = render(<TierSection tier="ascended" projects={[]} hostBySlug={{}} editing overrides={{}} onDragStart={noop} onDrop={noop} />)
+    // Returning true means preventDefault was never called, so the browser treats the
+    // section as a non-drop-zone and never fires a drop on it at all.
+    expect(fireEvent.dragOver(container.querySelector('.tier') as Element)).toBe(true)
+  })
+
+  it('never shows drop-target styling on the ascended', () => {
+    const { container } = render(<TierSection tier="ascended" projects={[]} hostBySlug={{}} editing overrides={{}} onDragStart={noop} onDrop={noop} />)
+    const section = container.querySelector('.tier') as Element
+    fireEvent.dragOver(section)
+    expect(section.classList.contains('tier--drop-target')).toBe(false)
+  })
+
+  it('still renders ascended cards, draggable, so they can be dragged out', () => {
+    const ascended: Project = {
+      slug: 'ab', name: 'Absorbed', blurb: 'was here', tier: 'ascended',
+      absorbedInto: { name: 'deskboard', slug: 'ef' }
+    }
+    const { container } = render(<TierSection tier="ascended" projects={[ascended]} hostBySlug={{}} editing overrides={{}} onDragStart={noop} onDrop={noop} />)
+    const card = container.querySelector('.card') as HTMLElement
+    expect(card).not.toBeNull()
+    expect(card.draggable).toBe(true)
+    expect(screen.getByText(/ascended into deskboard/)).toBeInTheDocument()
+  })
+
   it('renders one card per project', () => {
     const { container } = render(<TierSection tier="living" projects={projects} hostBySlug={{}} editing={false} overrides={{}} onDragStart={noop} onDrop={noop} />)
     expect(container.querySelectorAll('.card')).toHaveLength(2)

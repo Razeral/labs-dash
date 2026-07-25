@@ -4,7 +4,7 @@ import { EditBar } from './components/EditBar'
 import type { CopyState } from './components/EditBar'
 import { readOverrides, writeOverride, clearOverrides, applyOverrides, exportRoster } from './overrides'
 import { isEditEnabled } from './auth'
-import { TIERS } from './types'
+import { TIERS, acceptsDrop } from './types'
 import type { Project, Tier } from './types'
 import seed from './data/projects.json'
 import './styles/tokens.css'
@@ -26,6 +26,14 @@ export const App = () => {
   )
 
   const resolved = useMemo(() => applyOverrides(roster, overrides), [overrides])
+
+  // Only count overrides for slugs still on the roster. A stored override for a project that
+  // has since been removed or renamed marks no card, so counting it makes the bar read
+  // "1 local change" with nothing highlighted on the board.
+  const changeCount = useMemo(
+    () => Object.keys(overrides).filter((slug) => roster.some((p) => p.slug === slug)).length,
+    [overrides]
+  )
 
   const hostBySlug = useMemo(
     () => Object.fromEntries(roster.filter((p) => p.host).map((p) => [p.slug, p.host as string])),
@@ -128,7 +136,7 @@ export const App = () => {
   const handleDrop = (tier: Tier) => {
     const slug = dragged.current
     dragged.current = null
-    if (!slug || !editing) return
+    if (!slug || !editing || !acceptsDrop(tier)) return
     setOverrides(writeOverride(slug, tier))
   }
 
@@ -156,7 +164,7 @@ export const App = () => {
 
       {editing && (
         <EditBar
-          changeCount={Object.keys(overrides).length}
+          changeCount={changeCount}
           copyState={copyState}
           onCopy={handleCopy}
           onReset={handleReset}

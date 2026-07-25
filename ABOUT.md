@@ -81,6 +81,13 @@ localStorage, layered over the committed file at render time. `copy projects.jso
 roster with overrides applied for pasting back into `src/data/projects.json`; committing that makes
 the change canonical and the override can be reset.
 
+**Four of the five ranks are drop targets. The Ascended is not.** Ascending means being absorbed
+into a *named* successor, and a dragged card carries no successor to name — so the rank refuses
+drops and never shows drop-target styling (`acceptsDrop` in `src/types.ts`). Its cards still render
+normally and are still draggable *out*; dragging one out strips `absorbedInto`, which is what keeps
+the exported roster passing the ascended-iff-`absorbedInto` test it gets pasted back into. To
+promote something to Ascended, edit `projects.json` by hand and supply the successor.
+
 **Per-browser by design.** An override affects only the browser that made it, which is what makes
 "for me alone" true with no server-side authorization — there is no shared write path. The owner
 check reads the `email` claim from the Cognito ID token cookie (`cognito-at-edge` sets it without
@@ -112,6 +119,13 @@ check reads the `email` claim from the Cognito ID token cookie (`cognito-at-edge
 - **`provision-edge.sh` did not exist** before this project, despite `labs-auth`'s README
   referencing it in four places. It now lives in `labs-auth/` and does both halves — publish a
   version *and* repoint the distribution.
+- **`provision-edge.sh` gates every cache behavior, not just the default, and halts on a foreign
+  gate.** Its first version rewrote only `DefaultCacheBehavior` and then printed `ACCESS CUTOVER
+  COMPLETE`. labs-dash `EFEV1TL1LF6Y3` has no extra behaviors so it was unaffected, but govbrain
+  `E92IHXS1ZAMU1` (`/api/*`, `/health`, `/.well-known/oauth-*`) would have been left fail-open,
+  and depot `E39RD9OU6NJIZW` (four behaviors on `depot-edge-auth:8`) would have ended up with two
+  gate implementations. It now applies the association everywhere, prints every behavior
+  afterwards, and refuses to write if any behavior names a different function.
 
 ## Cost
 
