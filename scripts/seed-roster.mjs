@@ -1,0 +1,66 @@
+import { execSync } from 'node:child_process'
+import { readdirSync, statSync, readFileSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
+
+const ROOT = '/Users/aip/Code/Terra/projects'
+const TODAY = new Date('2026-07-25')
+
+const HOSTS = {
+  govbrain: 'https://govbrain.labs.ai.tech.gov.sg',
+  continuum: 'https://continuum.labs.ai.tech.gov.sg',
+  minime: 'https://minime.labs.ai.tech.gov.sg',
+  playtester: 'https://playtester.labs.ai.tech.gov.sg',
+  'compliance-api-dashboard': 'https://compliance-api.labs.ai.tech.gov.sg',
+  depot: 'https://stg.depot.ai.tech.gov.sg',
+  ducks: 'https://ducks.ai.tech.gov.sg',
+  manydevs: 'https://manydevs.ai.tech.gov.sg',
+  'harness-site': 'https://harness.ai.tech.gov.sg',
+  'editor-frontpage': 'https://deskboard.ai.tech.gov.sg',
+  'mech-hangar': 'https://stg.agents.ai.tech.gov.sg/frontend/hangar/',
+  giantrobotslabs: 'https://giantrobots.tech.gov.sg'
+}
+
+const ASCENDED = {
+  editor: { name: 'deskboard', slug: 'editor-frontpage' },
+  mcpscan: { name: 'the MCP gateway' }
+}
+
+const ageDays = (repo) => {
+  const out = execSync(`git -C ${repo} log -1 --format=%cd --date=short`, { encoding: 'utf8' }).trim()
+  return Math.round((TODAY - new Date(out)) / 86400000)
+}
+
+const seedTier = (slug, age, hosted) => {
+  if (ASCENDED[slug]) return 'ascended'
+  if (hosted) return age <= 30 ? 'living' : 'dormant'
+  return age <= 90 ? 'living' : 'fallen'
+}
+
+const isRepo = (dir) => {
+  try { return statSync(join(dir, '.git')).isDirectory() } catch { return false }
+}
+
+const rows = []
+for (const slug of readdirSync(ROOT).sort()) {
+  if (slug === 'labs-dash') continue
+  if (!isRepo(join(ROOT, slug))) continue
+  let age
+  try { age = ageDays(join(ROOT, slug)) } catch { continue }
+  const host = HOSTS[slug]
+  const entry = { slug, name: slug, blurb: '', tier: seedTier(slug, age, Boolean(host)) }
+  if (host) entry.host = host
+  if (ASCENDED[slug]) entry.absorbedInto = ASCENDED[slug]
+  rows.push(entry)
+}
+
+rows.push({
+  slug: 'analytics',
+  name: 'analytics',
+  blurb: 'AIAP internal analytics dashboard. Live, unclaimed, no repo in Terra.',
+  tier: 'risen',
+  host: 'https://analytics.labs.ai.tech.gov.sg',
+  note: 'No matching repo in projects/. Untouched since 2026-06-10.'
+})
+
+writeFileSync('src/data/projects.json', JSON.stringify(rows, null, 2) + '\n')
+console.log(`wrote ${rows.length} projects`)
