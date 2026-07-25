@@ -32,14 +32,18 @@ export const App = () => {
     []
   )
 
+  // The reveal marker is an attribute, not a class. TierSection's className is
+  // React-owned and is rewritten whenever it toggles `tier--drop-target`, which
+  // would silently wipe a class added here and strand the rank at opacity 0.
   useEffect(() => {
     const els = document.querySelectorAll('.tier')
+    const reveal = (el: Element) => el.setAttribute('data-revealed', '')
     if (typeof IntersectionObserver === 'undefined') {
-      els.forEach((el) => el.classList.add('is-revealed'))
+      els.forEach(reveal)
       return
     }
     const io = new IntersectionObserver(
-      (entries) => entries.forEach((e) => e.isIntersecting && e.target.classList.add('is-revealed')),
+      (entries) => entries.forEach((e) => e.isIntersecting && reveal(e.target)),
       { rootMargin: '0px 0px -10% 0px' }
     )
     els.forEach((el) => io.observe(el))
@@ -60,6 +64,17 @@ export const App = () => {
 
     let frame = 0
     let pending: PointerEvent | null = null
+    let lit: HTMLElement | null = null
+
+    // A card that keeps stale --mx/--my re-ignites at the last mouse position
+    // when it is re-entered or keyboard-focused. Clearing them restores the
+    // 50% 0% fallback in app.css.
+    const douse = () => {
+      if (!lit) return
+      lit.style.removeProperty('--mx')
+      lit.style.removeProperty('--my')
+      lit = null
+    }
 
     const paint = () => {
       frame = 0
@@ -68,10 +83,12 @@ export const App = () => {
       if (!event) return
       const target = event.target as Element | null
       const card = target?.closest?.('.card') as HTMLElement | null
+      if (card !== lit) douse()
       if (!card) return
       const box = card.getBoundingClientRect()
       card.style.setProperty('--mx', `${event.clientX - box.left}px`)
       card.style.setProperty('--my', `${event.clientY - box.top}px`)
+      lit = card
     }
 
     const onMove = (event: Event) => {
@@ -79,10 +96,22 @@ export const App = () => {
       if (!frame) frame = requestAnimationFrame(paint)
     }
 
+    const onLeave = () => {
+      pending = null
+      if (frame) {
+        cancelAnimationFrame(frame)
+        frame = 0
+      }
+      douse()
+    }
+
     board.addEventListener('pointermove', onMove)
+    board.addEventListener('pointerleave', onLeave)
     return () => {
       board.removeEventListener('pointermove', onMove)
+      board.removeEventListener('pointerleave', onLeave)
       if (frame) cancelAnimationFrame(frame)
+      douse()
     }
   }, [])
 

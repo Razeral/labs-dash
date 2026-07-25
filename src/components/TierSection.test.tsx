@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, createEvent } from '@testing-library/react'
 import { TierSection } from './TierSection'
 import { TIER_META } from '../types'
 import type { Project } from '../types'
@@ -50,6 +50,58 @@ describe('TierSection', () => {
 
     rerender(<TierSection tier="living" projects={[]} hostBySlug={{}} editing={false} overrides={{}} onDragStart={noop} onDrop={noop} />)
     expect(fireEvent.dragOver(section)).toBe(true)
+  })
+
+  it('marks itself a drop target while a drag is over it in edit mode', () => {
+    const { container } = render(<TierSection tier="dormant" projects={projects} hostBySlug={{}} editing overrides={{}} onDragStart={noop} onDrop={noop} />)
+    const section = container.querySelector('.tier') as Element
+    expect(section.classList.contains('tier--drop-target')).toBe(false)
+    fireEvent.dragOver(section)
+    expect(section.classList.contains('tier--drop-target')).toBe(true)
+  })
+
+  it('never marks itself a drop target when not editing', () => {
+    const { container } = render(<TierSection tier="dormant" projects={projects} hostBySlug={{}} editing={false} overrides={{}} onDragStart={noop} onDrop={noop} />)
+    const section = container.querySelector('.tier') as Element
+    fireEvent.dragOver(section)
+    expect(section.classList.contains('tier--drop-target')).toBe(false)
+  })
+
+  it('clears the drop target on dragleave', () => {
+    const { container } = render(<TierSection tier="dormant" projects={projects} hostBySlug={{}} editing overrides={{}} onDragStart={noop} onDrop={noop} />)
+    const section = container.querySelector('.tier') as Element
+    fireEvent.dragOver(section)
+    expect(section.classList.contains('tier--drop-target')).toBe(true)
+    fireEvent.dragLeave(section)
+    expect(section.classList.contains('tier--drop-target')).toBe(false)
+  })
+
+  it('keeps the drop target when dragleave crosses into a child', () => {
+    const { container } = render(<TierSection tier="dormant" projects={projects} hostBySlug={{}} editing overrides={{}} onDragStart={noop} onDrop={noop} />)
+    const section = container.querySelector('.tier') as Element
+    fireEvent.dragOver(section)
+    const leave = createEvent.dragLeave(section)
+    Object.defineProperty(leave, 'relatedTarget', { value: container.querySelector('.card') })
+    fireEvent(section, leave)
+    expect(section.classList.contains('tier--drop-target')).toBe(true)
+  })
+
+  it('clears the drop target on drop', () => {
+    const { container } = render(<TierSection tier="dormant" projects={projects} hostBySlug={{}} editing overrides={{}} onDragStart={noop} onDrop={noop} />)
+    const section = container.querySelector('.tier') as Element
+    fireEvent.dragOver(section)
+    expect(section.classList.contains('tier--drop-target')).toBe(true)
+    fireEvent.drop(section)
+    expect(section.classList.contains('tier--drop-target')).toBe(false)
+  })
+
+  it('keeps the externally-set reveal marker across a drop-target toggle', () => {
+    const { container } = render(<TierSection tier="dormant" projects={projects} hostBySlug={{}} editing overrides={{}} onDragStart={noop} onDrop={noop} />)
+    const section = container.querySelector('.tier') as Element
+    section.setAttribute('data-revealed', '')
+    fireEvent.dragOver(section)
+    fireEvent.dragLeave(section)
+    expect(section.hasAttribute('data-revealed')).toBe(true)
   })
 
   it('sets the --i custom property on each cell', () => {

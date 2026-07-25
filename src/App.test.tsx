@@ -140,7 +140,7 @@ describe('App', () => {
 
     const target = sections[0]
     io?.callback([{ isIntersecting: true, target } as unknown as IntersectionObserverEntry])
-    expect(target.classList.contains('is-revealed')).toBe(true)
+    expect(target.hasAttribute('data-revealed')).toBe(true)
 
     unmount()
     expect(io?.disconnect).toHaveBeenCalledTimes(1)
