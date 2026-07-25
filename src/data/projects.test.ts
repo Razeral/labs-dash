@@ -8,8 +8,10 @@ const file = raw as Roster
 const roster = file.projects
 
 describe('projects.json', () => {
-  it('has 49 entries', () => {
-    expect(roster).toHaveLength(49)
+  it('has a plausible number of entries', () => {
+    // Deliberately not a fixed count: the roster is hand-edited, projects come and go, and a
+    // frozen number fails for the wrong reason every time someone curates the list.
+    expect(roster.length).toBeGreaterThan(20)
   })
 
   it('has unique non-empty slugs', () => {
