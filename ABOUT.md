@@ -85,9 +85,11 @@ Two layers of generated cel-shaded art, both produced with the `imagine` CLI fro
 project's own description and committed as JPEGs.
 
 **Card art** — `src/assets/cards/<slug>.jpg`, discovered by `import.meta.glob`, so dropping a
-file in is the whole act of adding art; there is no registry to keep in sync. It renders only
-for a **living** project that also has a **host** (enforced in `App.tsx`, not by the file's
-presence) — a dormant or fallen card with lush art would fight the stillness those ranks rely on.
+file in is the whole act of adding art; there is no registry to keep in sync. It renders for the **living** (which must also have a **host** — art is for something you can
+go and see) and for the **ascended**. The ascended are a deliberate exception: they have no host
+of their own *precisely because* they graduated, and their scene is the record of what they
+became. Dormant, risen and fallen stay bare — lush art would fight the stillness those ranks
+depend on. The rule lives in `App.tsx`, not in the file's presence.
 
 Cards with art are **poster tiles**: the art runs full-bleed and near-undimmed across the top,
 and the text cluster is pushed to the bottom onto a plateau of `--ground`. The gradient stops

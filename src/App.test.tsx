@@ -5,6 +5,7 @@ import { STORAGE_KEY } from './overrides'
 import { TIERS, TIER_META } from './types'
 import { roster, allProjects } from './data/roster'
 import { tierArt } from './data/tierArt'
+import { cardArt } from './data/cardArt'
 import type { Project } from './types'
 import { FakeIntersectionObserver } from './test-setup'
 import * as auth from './auth'
@@ -316,5 +317,26 @@ describe('App', () => {
     const cue = container.querySelector('.hero__cue') as HTMLAnchorElement
     const target = cue.getAttribute('href')?.slice(1)
     expect(container.querySelector(`#${target}`)).not.toBeNull()
+  })
+
+  it('gives ascended cards art even though they have no host of their own', () => {
+    const { container } = render(<App />)
+    const ascended = container.querySelectorAll('.tier--ascended [data-slug]')
+    expect(ascended.length).toBeGreaterThan(0)
+    // Every ascended project with an image on disk must actually render it. They are the one
+    // rank that gets art without a host, so a regression here is silent.
+    for (const card of ascended) {
+      const slug = card.getAttribute('data-slug') as string
+      if (cardArt[slug]) expect(card.classList.contains('card--art')).toBe(true)
+    }
+  })
+
+  it('keeps art off the ranks that rely on stillness', () => {
+    const { container } = render(<App />)
+    for (const tier of ['dormant', 'risen', 'fallen']) {
+      for (const card of container.querySelectorAll(`.tier--${tier} [data-slug]`)) {
+        expect(card.classList.contains('card--art')).toBe(false)
+      }
+    }
   })
 })

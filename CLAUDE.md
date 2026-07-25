@@ -68,8 +68,8 @@ do not relax that to `existsSync`, which picks up `continuum-plan2`'s worktree p
 
 ## Adding or replacing art
 
-- **Card art:** put a JPEG at `src/assets/cards/<slug>.jpg`. It only renders if that project is
-  `living` **and** has a `host`. Nothing to register — it is globbed at build time.
+- **Card art:** put a JPEG at `src/assets/cards/<slug>.jpg`. It renders if the project is
+  `ascended`, or `living` **and** has a `host`. Nothing to register — it is globbed at build time.
 - **Tier backdrop:** put a JPEG at `src/assets/tiers/<tier>.jpg`.
 - Generate with the `imagine` CLI (`--style "Cel-shaded game"`), then downscale: cards to 720px
   wide, backdrops to 1280px, JPEG q55-60. They are dimmed backgrounds, not hero images.
@@ -111,6 +111,22 @@ so a broken gate is slow to undo.
 It gates the default cache behavior **and every `CacheBehaviors` entry**, and halts without writing
 if any behavior already names a different Lambda function. If it halts, do not force past it — two
 gate implementations on one distribution is worse than the state you started in.
+
+## Granting someone access
+
+They must **sign in once first** — Cognito only creates a user record for a federated TechPass
+user after their first login, so adding them beforehand fails with `UserNotFoundException`.
+
+```bash
+POOL=ap-southeast-1_zhuDvtEBS
+aws cognito-idp list-users --user-pool-id $POOL --filter 'email="them@tech.gov.sg"' \
+  --query 'Users[0].Username' --output text          # None => they have not logged in yet
+aws cognito-idp admin-add-user-to-group --user-pool-id $POOL \
+  --group-name labs-dash-users --username <that username>
+```
+
+Then they must **re-login cleanly** — `cognito:groups` is baked into the ID token at issue time,
+so an existing session keeps its old group-less token and gets a 403 until it is replaced.
 
 ## Restricting access to a Cognito group
 
