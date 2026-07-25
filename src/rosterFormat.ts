@@ -4,14 +4,17 @@ import type { Project } from './types'
 // folded block, so putting `name` and `tier` on the opening line makes a fully-collapsed file
 // read as the tier list itself:
 //
-//     { "name": "GovBrain", "tier": "living", …
-//     { "name": "Offside", "tier": "ascended", …
+//     { "name": "GovBrain", "tier": "living", "slug": "govbrain", …
+//     { "name": "Offside", "tier": "ascended", "slug": "offside", …
+//
+// `slug` is on that line deliberately: the `omit` list matches on slug, not name, so the
+// value you need to copy is visible without expanding the entry.
 //
 // Key order is irrelevant to the app (plain property access); this is purely an editing
 // affordance, so the export writes the same shape the file already uses.
 
-const HEAD: (keyof Project)[] = ['name', 'tier']
-const TAIL: (keyof Project)[] = ['slug', 'blurb', 'host', 'absorbedInto', 'note']
+const HEAD: (keyof Project)[] = ['name', 'tier', 'slug']
+const TAIL: (keyof Project)[] = ['blurb', 'host', 'absorbedInto', 'note']
 
 const j = (v: unknown): string => JSON.stringify(v)
 

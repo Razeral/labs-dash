@@ -146,7 +146,7 @@ describe('exportRoster formatting', () => {
     const lines = json.split('\n')
     const opens = lines.filter((l) => l.trimStart().startsWith('{ "name":'))
     expect(opens).toHaveLength(seed.length)
-    for (const line of opens) expect(line).toMatch(/^\s*\{ "name": ".+", "tier": "\w+",?/)
+    for (const line of opens) expect(line).toMatch(/^\s*\{ "name": ".+", "tier": "\w+", "slug": ".+",?/)
   })
 
   it('round-trips: the formatted output parses back to the same data', () => {

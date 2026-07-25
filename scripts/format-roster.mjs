@@ -4,14 +4,17 @@
 // `name` and `tier` on the opening line means a fully-collapsed file reads as the tier list
 // itself:
 //
-//     { "name": "GovBrain", "tier": "living", …
-//     { "name": "Offside", "tier": "ascended", …
+//     { "name": "GovBrain", "tier": "living", "slug": "govbrain", …
+//     { "name": "Offside", "tier": "ascended", "slug": "offside", …
+//
+// `slug` is on that line deliberately: the `omit` list matches on slug, not name, so the
+// value you need to copy is visible without expanding the entry.
 //
 // Key order is irrelevant to the app (plain property access), so this is purely an editing
 // affordance. Mirrored in src/rosterFormat.ts for the in-app export — keep the two in step.
 
-const HEAD = ['name', 'tier']
-const TAIL = ['slug', 'blurb', 'host', 'absorbedInto', 'note']
+const HEAD = ['name', 'tier', 'slug']
+const TAIL = ['blurb', 'host', 'absorbedInto', 'note']
 
 const j = (v) => JSON.stringify(v)
 
