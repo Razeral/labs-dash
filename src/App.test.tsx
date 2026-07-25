@@ -145,4 +145,35 @@ describe('App', () => {
     unmount()
     expect(io?.disconnect).toHaveBeenCalledTimes(1)
   })
+
+  it('keeps a revealed rank revealed when a drag rewrites its class attribute', () => {
+    // Deliberately accepts either marker. The point of this test is not which
+    // mechanism marks a rank revealed, it is that the mark SURVIVES a React
+    // re-render. Pinning the attribute here would make the test fail at the
+    // first assertion if the marker moved back to a class, which would hide
+    // the erasure this guards.
+    const isRevealed = (el: Element) =>
+      el.hasAttribute('data-revealed') || el.classList.contains('is-revealed')
+
+    enableEditing()
+    const { container } = render(<App />)
+    const section = container.querySelector('.tier--living') as HTMLElement
+    const io = FakeIntersectionObserver.instances.at(-1)
+
+    io?.callback([{ isIntersecting: true, target: section } as unknown as IntersectionObserverEntry])
+    expect(isRevealed(section)).toBe(true)
+
+    // Dragging toggles `tier--drop-target`, so React rewrites the whole class
+    // attribute — twice. The observer never re-fires for an element that is
+    // already intersecting, so anything React erases here strands the rank at
+    // opacity 0 permanently: a blank section, with every other test passing.
+    fireEvent.dragStart(section.querySelector('.card') as Element)
+    fireEvent.dragOver(section)
+    expect(section.classList.contains('tier--drop-target')).toBe(true)
+
+    fireEvent.dragLeave(section)
+    expect(section.classList.contains('tier--drop-target')).toBe(false)
+
+    expect(isRevealed(section)).toBe(true)
+  })
 })
