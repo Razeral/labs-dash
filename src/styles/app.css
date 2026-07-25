@@ -1,1 +1,583 @@
-/* Task 8 owns this file: board layout, tier reveal animation, cursor glow. */
+/* The Labs. Dark arcane bestiary.
+   Colour, type, spacing, easing and duration all come from tokens.css.
+   Values declared here are derived washes and rules that have no token. */
+
+:root {
+  --rule: rgba(232, 221, 200, 0.07);
+  --rule-strong: rgba(232, 221, 200, 0.14);
+  --shade: rgba(6, 5, 4, 0.55);
+  --editbar-h: 2.75rem;
+  --stick-top: 0px;
+  --board-pad: var(--space-4);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  background-color: var(--ground);
+  background-image: radial-gradient(120% 80% at 50% -20%, #16120f 0%, var(--ground) 58%);
+  background-attachment: fixed;
+  color: var(--parchment);
+  font-family: var(--font-body);
+  font-size: var(--step0);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+:focus-visible {
+  outline: 1px solid var(--ember);
+  outline-offset: 3px;
+}
+
+/* ---------- Board ---------- */
+
+.board {
+  max-width: 1200px;
+  margin-inline: auto;
+  padding: var(--space-5) var(--board-pad);
+}
+
+.board__header {
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--rule-strong);
+}
+
+.board__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--step3);
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  line-height: 1.1;
+}
+
+.board__sub {
+  margin: var(--space-2) 0 0;
+  font-family: var(--font-mono);
+  font-size: var(--step-1);
+  letter-spacing: 0.08em;
+  color: var(--parchment-dim);
+}
+
+/* ---------- Edit bar ----------
+   Deliberately reads as an instrument panel, not as board chrome, so an
+   overridden view is never mistaken for the canonical roster. */
+
+.editbar {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--editbar-h);
+  margin: var(--space-3) 0 0;
+  padding: var(--space-1) var(--space-3);
+  background-color: var(--surface-raised);
+  background-image: linear-gradient(var(--ember-glow), transparent 140%);
+  border: 1px solid var(--ember);
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: var(--step-1);
+  letter-spacing: 0.04em;
+}
+
+.editbar__status {
+  color: var(--ember);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.editbar__status::before {
+  content: '✎ ';
+}
+
+.editbar__action {
+  appearance: none;
+  padding: 0.3rem var(--space-2);
+  background: transparent;
+  color: var(--parchment);
+  border: 1px solid var(--rule-strong);
+  border-radius: 2px;
+  font: inherit;
+  cursor: pointer;
+  transition: transform var(--dur-out) var(--ease-out),
+    border-color var(--dur-out) var(--ease-out),
+    color var(--dur-out) var(--ease-out);
+}
+
+.editbar__action:hover:not(:disabled) {
+  border-color: var(--ember);
+  color: var(--ember);
+  transition-duration: var(--dur-in);
+}
+
+.editbar__action:active:not(:disabled) {
+  transform: scale(0.97);
+  transition-duration: 100ms;
+}
+
+.editbar__action:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.editbar__copy-status {
+  color: var(--gold);
+}
+
+/* With the edit bar present it owns the top of the viewport and the rank
+   headers park underneath it. */
+.board:has(.editbar) {
+  --stick-top: var(--editbar-h);
+}
+
+/* ---------- Ranks ---------- */
+
+.tier {
+  opacity: 0;
+  transition: opacity var(--dur-enter) var(--ease-out);
+}
+
+.tier.is-revealed {
+  opacity: 1;
+}
+
+.tier__header {
+  position: sticky;
+  top: var(--stick-top);
+  z-index: 2;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: baseline;
+  column-gap: var(--space-2);
+  row-gap: var(--space-1);
+  margin-top: var(--space-5);
+  padding: var(--space-3) 0 var(--space-2);
+  background-color: var(--ground);
+  border-bottom: 1px solid var(--rule);
+}
+
+/* The board header already opens the page; the first rank does not need a
+   second full measure of air above it. */
+.board__header + .tier .tier__header {
+  margin-top: var(--space-4);
+}
+
+/* Cards dissolve under a stuck header instead of being sliced by it. */
+.tier__header::after {
+  content: '';
+  position: absolute;
+  inset: 100% 0 auto;
+  height: var(--space-3);
+  background-image: linear-gradient(var(--ground), transparent);
+  pointer-events: none;
+}
+
+.tier__glyph {
+  font-size: var(--step1);
+  line-height: 1;
+  color: var(--parchment-faint);
+}
+
+.tier__name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--step2);
+  font-weight: 400;
+  letter-spacing: 0.14em;
+}
+
+.tier__count {
+  justify-self: end;
+  font-family: var(--font-mono);
+  font-size: var(--step-1);
+  letter-spacing: 0.08em;
+  color: var(--parchment-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Hangs under the rank name, past the glyph, so the glyph column reads as a
+   margin mark rather than a bullet. */
+.tier__lore {
+  grid-column: 2 / -1;
+  max-width: 62ch;
+  margin: 0;
+  font-size: var(--step-1);
+  color: var(--parchment-dim);
+}
+
+.tier--drop-target .tier__header {
+  border-bottom-color: var(--ember);
+}
+
+.tier--drop-target .tier__grid {
+  outline: 1px dashed var(--ember);
+  outline-offset: var(--space-2);
+}
+
+.tier__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--space-3);
+  padding-top: var(--space-3);
+}
+
+/* ---------- Entrance ----------
+   Staggered on the cell, never on the card, so the reveal delay can never
+   leak into the hover transition. Capped so rank one (29 cards) does not
+   take over a second to finish arriving. */
+
+.tier__cell {
+  display: flex;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity var(--dur-enter) var(--ease-out),
+    transform var(--dur-enter) var(--ease-out);
+  transition-delay: min(calc(var(--i) * 40ms), 320ms);
+}
+
+.tier.is-revealed .tier__cell {
+  opacity: 1;
+  transform: none;
+}
+
+/* The Fallen do not rise. Their entrance is opacity only. */
+.tier--fallen .tier__cell {
+  transform: none;
+}
+
+/* ---------- Card ---------- */
+
+.card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  background-color: var(--surface);
+  border: 1px solid var(--edge);
+  border-radius: 3px;
+  color: inherit;
+  text-decoration: none;
+  transition: transform var(--dur-out) var(--ease-settle),
+    border-color var(--dur-out) var(--ease-out),
+    background-color var(--dur-out) var(--ease-out),
+    opacity var(--dur-out) var(--ease-out);
+}
+
+.card::before,
+.card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Cursor-tracked ember. --mx/--my are written by App.tsx; the fallback keeps
+   the glow sane for keyboard focus, where there is no pointer. */
+.card::before {
+  background-image: radial-gradient(
+    200px circle at var(--mx, 50%) var(--my, 0%),
+    var(--ember-glow),
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity var(--dur-out) var(--ease-out);
+}
+
+.card__name {
+  font-family: var(--font-display);
+  font-size: var(--step1);
+  line-height: 1.25;
+  letter-spacing: 0.01em;
+}
+
+.card__blurb {
+  font-size: var(--step0);
+  line-height: 1.45;
+  color: var(--parchment-dim);
+  text-wrap: pretty;
+}
+
+.card__meta {
+  margin-top: auto;
+  padding-top: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--step-1);
+  letter-spacing: 0.02em;
+  color: var(--parchment-dim);
+  overflow-wrap: anywhere;
+  transition: color var(--dur-out) var(--ease-out);
+}
+
+/* Secondary, but still an audit note someone has to read: separated by size
+   and slope rather than by dropping it under a legible contrast. */
+.card__note {
+  font-size: var(--step-1);
+  font-style: italic;
+  color: var(--parchment-dim);
+}
+
+/* ---------- Linked: the only cards that react ---------- */
+
+.card--linked {
+  cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card--linked:hover {
+    transform: translateY(-2px);
+    border-color: var(--ember);
+    background-color: var(--surface-raised);
+    transition-duration: var(--dur-in);
+  }
+
+  .card--linked:hover::before {
+    opacity: 1;
+    transition-duration: var(--dur-in);
+  }
+
+  .card--linked:hover .card__meta {
+    color: var(--ember);
+    transition-duration: var(--dur-in);
+  }
+
+  .card--dormant.card--linked:hover {
+    opacity: 1;
+  }
+
+  .card--linked:active {
+    transform: translateY(-2px) scale(0.99);
+    transition-duration: 100ms;
+  }
+}
+
+.card--linked:focus-visible {
+  transform: translateY(-2px);
+  border-color: var(--ember);
+  background-color: var(--surface-raised);
+  transition-duration: var(--dur-in);
+}
+
+.card--linked:focus-visible::before {
+  opacity: 1;
+  transition-duration: var(--dur-in);
+}
+
+/* ---------- Inert: nowhere to go, so it claims nothing ---------- */
+
+.card--inert {
+  cursor: default;
+}
+
+.card--inert::before {
+  display: none;
+}
+
+.card--inert .card__meta {
+  color: var(--parchment-faint);
+}
+
+/* ---------- Per-rank ambients ----------
+   Every loop animates opacity or transform only, and is desynchronised by
+   --i so a grid of them never pulses in unison. */
+
+.card--living::after {
+  background-image: radial-gradient(120% 90% at 50% 118%, var(--ember-glow), transparent 62%);
+  opacity: 0.18;
+  animation: breathe 4s ease-in-out infinite alternate;
+  animation-delay: calc(var(--i) * -370ms);
+}
+
+@keyframes breathe {
+  from {
+    opacity: 0.14;
+  }
+  to {
+    opacity: 0.55;
+  }
+}
+
+.card--ascended {
+  border-color: rgba(217, 184, 113, 0.32);
+}
+
+.card--ascended .card__name {
+  color: var(--gold);
+}
+
+.card--ascended .card__meta {
+  color: rgba(217, 184, 113, 0.72);
+}
+
+.card--ascended::after {
+  background-image: linear-gradient(to top, var(--gold-glow), transparent 74%);
+  opacity: 0;
+  animation: ascend 6s ease-in-out infinite;
+  animation-delay: calc(var(--i) * -1900ms);
+}
+
+@keyframes ascend {
+  0% {
+    opacity: 0;
+    transform: translateY(6%);
+  }
+  38% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-16%);
+  }
+}
+
+/* Still standing, so it keeps its internal hierarchy; it just sits back a
+   step and does not breathe. Hovering one brings it fully forward. */
+.card--dormant {
+  background-color: rgba(19, 17, 16, 0.6);
+  opacity: 0.88;
+}
+
+/* Guttering, not strobing: two short stutters every seven seconds, still
+   for the rest of the loop. */
+.card--risen::after {
+  background-image: radial-gradient(95% 75% at 50% 0%, var(--ember-glow), transparent 60%);
+  opacity: 0.1;
+  animation: gutter 7s steps(1, end) infinite;
+}
+
+@keyframes gutter {
+  0%,
+  46%,
+  100% {
+    opacity: 0.1;
+  }
+  47% {
+    opacity: 0.5;
+  }
+  48% {
+    opacity: 0.12;
+  }
+  49.4% {
+    opacity: 0.62;
+  }
+  50.6% {
+    opacity: 0.14;
+  }
+  72% {
+    opacity: 0.1;
+  }
+  73% {
+    opacity: 0.44;
+  }
+  73.9% {
+    opacity: 0.12;
+  }
+}
+
+/* The Fallen: recessed, desaturated, completely still. Stillness and the
+   drained colour carry the signal, so the record itself stays readable. */
+.card--fallen {
+  background-color: transparent;
+  border-color: var(--rule);
+  filter: saturate(0.4);
+  opacity: 0.82;
+  animation: none;
+}
+
+.card--fallen::after {
+  display: none;
+}
+
+.tier--living .tier__glyph {
+  color: var(--ember);
+}
+
+.tier--ascended .tier__glyph {
+  color: var(--gold);
+}
+
+.tier--risen .tier__glyph {
+  color: rgba(212, 118, 58, 0.6);
+}
+
+/* ---------- Locally moved ----------
+   A gold dog-ear plus a gold edge. Unmistakable, and not a side stripe. */
+
+.card--overridden {
+  border-color: rgba(217, 184, 113, 0.55);
+  background-image: linear-gradient(225deg, var(--gold) 0 10px, transparent 10px);
+  background-repeat: no-repeat;
+}
+
+/* ---------- Drag ---------- */
+
+.card[draggable='true'] {
+  cursor: grab;
+}
+
+.card[draggable='true']:active {
+  cursor: grabbing;
+  transform: scale(1.03);
+  box-shadow: 0 12px 28px var(--shade);
+  transition-duration: var(--dur-in);
+}
+
+/* ---------- Narrow ---------- */
+
+@media (max-width: 640px) {
+  .board {
+    --board-pad: var(--space-3);
+    padding-block: var(--space-4);
+  }
+
+  .board__title {
+    font-size: var(--step2);
+  }
+
+  .tier__name {
+    font-size: var(--step1);
+  }
+
+  .tier__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition-property: opacity !important;
+    transition-duration: 120ms !important;
+  }
+
+  .card {
+    transform: none !important;
+  }
+
+  .tier__cell {
+    transform: none;
+    transition-delay: 0ms;
+  }
+}

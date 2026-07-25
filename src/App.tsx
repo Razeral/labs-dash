@@ -46,6 +46,46 @@ export const App = () => {
     return () => io.disconnect()
   }, [])
 
+  // Cursor-tracked ember on the hovered card. Skipped entirely for reduced
+  // motion and for coarse pointers, where there is no cursor to track.
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return
+    const skip =
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
+      window.matchMedia('(pointer: coarse)').matches
+    if (skip) return
+
+    const board = document.querySelector('.board')
+    if (!board) return
+
+    let frame = 0
+    let pending: PointerEvent | null = null
+
+    const paint = () => {
+      frame = 0
+      const event = pending
+      pending = null
+      if (!event) return
+      const target = event.target as Element | null
+      const card = target?.closest?.('.card') as HTMLElement | null
+      if (!card) return
+      const box = card.getBoundingClientRect()
+      card.style.setProperty('--mx', `${event.clientX - box.left}px`)
+      card.style.setProperty('--my', `${event.clientY - box.top}px`)
+    }
+
+    const onMove = (event: Event) => {
+      pending = event as PointerEvent
+      if (!frame) frame = requestAnimationFrame(paint)
+    }
+
+    board.addEventListener('pointermove', onMove)
+    return () => {
+      board.removeEventListener('pointermove', onMove)
+      if (frame) cancelAnimationFrame(frame)
+    }
+  }, [])
+
   useEffect(() => () => {
     if (copyTimer.current) clearTimeout(copyTimer.current)
   }, [])
