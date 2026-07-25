@@ -5,12 +5,13 @@ type Props = {
   successorHost?: string
   draggable: boolean
   overridden: boolean
+  art?: string
   onDragStart: (slug: string) => void
 }
 
 const hostLabel = (host: string) => new URL(host).hostname
 
-export const Card = ({ project, successorHost, draggable, overridden, onDragStart }: Props) => {
+export const Card = ({ project, successorHost, draggable, overridden, art, onDragStart }: Props) => {
   const { slug, name, blurb, tier, host, absorbedInto, note } = project
 
   const href =
@@ -32,7 +33,8 @@ export const Card = ({ project, successorHost, draggable, overridden, onDragStar
     'card',
     `card--${tier}`,
     href ? 'card--linked' : 'card--inert',
-    overridden ? 'card--overridden' : ''
+    overridden ? 'card--overridden' : '',
+    art ? 'card--art' : ''
   ].filter(Boolean).join(' ')
 
   const body = (
@@ -44,11 +46,15 @@ export const Card = ({ project, successorHost, draggable, overridden, onDragStar
     </>
   )
 
+  // The art is passed as a custom property rather than a background shorthand so the
+  // stylesheet keeps control of the scrim that sits over it — the text contrast depends on
+  // that scrim, and a component should not be able to remove it by accident.
   const shared = {
     className,
     draggable,
     onDragStart: () => onDragStart(slug),
-    'data-slug': slug
+    'data-slug': slug,
+    ...(art ? { style: { ['--art' as string]: `url(${art})` } } : {})
   }
 
   return href

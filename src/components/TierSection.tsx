@@ -7,13 +7,14 @@ type Props = {
   tier: Tier
   projects: Project[]
   hostBySlug: Record<string, string>
+  artBySlug?: Record<string, string>
   editing: boolean
   overrides: TierOverrides
   onDragStart: (slug: string) => void
   onDrop: (tier: Tier) => void
 }
 
-export const TierSection = ({ tier, projects, hostBySlug, editing, overrides, onDragStart, onDrop }: Props) => {
+export const TierSection = ({ tier, projects, hostBySlug, artBySlug = {}, editing, overrides, onDragStart, onDrop }: Props) => {
   const meta = TIER_META[tier]
   const count = projects.length
   const [dropTarget, setDropTarget] = useState(false)
@@ -63,6 +64,7 @@ export const TierSection = ({ tier, projects, hostBySlug, editing, overrides, on
               successorHost={p.absorbedInto?.slug ? hostBySlug[p.absorbedInto.slug] : undefined}
               draggable={editing}
               overridden={Boolean(overrides[p.slug])}
+              art={artBySlug[p.slug]}
               onDragStart={onDragStart}
             />
           </div>

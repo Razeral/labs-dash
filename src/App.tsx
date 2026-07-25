@@ -7,6 +7,7 @@ import { isEditEnabled } from './auth'
 import { TIERS, acceptsDrop } from './types'
 import type { Tier } from './types'
 import { roster, allProjects, omit } from './data/roster'
+import { cardArt } from './data/cardArt'
 import './styles/tokens.css'
 import './styles/app.css'
 
@@ -25,6 +26,17 @@ export const App = () => {
   )
 
   const resolved = useMemo(() => applyOverrides(roster, overrides), [overrides])
+
+  // Art is reserved for a living project that actually has somewhere to go. A dormant or
+  // fallen card with a lush background would fight the stillness those ranks rely on.
+  const artBySlug = useMemo(
+    () => Object.fromEntries(
+      resolved
+        .filter((p) => p.tier === 'living' && p.host && cardArt[p.slug])
+        .map((p) => [p.slug, cardArt[p.slug]])
+    ),
+    [resolved]
+  )
 
   // Only count overrides for slugs still on the roster. A stored override for a project that
   // has since been removed or renamed marks no card, so counting it makes the bar read
@@ -176,6 +188,7 @@ export const App = () => {
           tier={tier}
           projects={resolved.filter((p) => p.tier === tier)}
           hostBySlug={hostBySlug}
+          artBySlug={artBySlug}
           editing={editing}
           overrides={overrides}
           onDragStart={(slug) => { dragged.current = slug }}

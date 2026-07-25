@@ -590,3 +590,40 @@ body {
     transition-delay: 0ms;
   }
 }
+
+/* ── Card art ─────────────────────────────────────────────────────────────────
+   Living cards that actually have a host carry a cel-shaded background, set by the
+   component as --art. The scrim is NOT optional: the card's text contrast was measured
+   and fixed at AA against a near-ground backdrop, and a bright patch of art behind
+   .card__meta would undo that. Layering a 0.90 -> 0.96 wash of --ground over the image
+   keeps the worst-case backdrop darker than --surface, so contrast can only improve.
+   Worst case at 0.88: a pure-white pixel resolves to ~rgb(39,39,39); --parchment-dim on that
+   is 4.9:1, still clear of AA. Do not raise the top stop past 0.88 without re-measuring.
+   The gradient is heavier at the bottom, where the meta line sits. */
+.card--art {
+  background-image:
+    linear-gradient(180deg, rgba(10, 9, 8, 0.88) 0%, rgba(10, 9, 8, 0.96) 100%),
+    var(--art);
+  background-size: cover, cover;
+  background-position: center, center;
+  background-repeat: no-repeat, no-repeat;
+}
+
+/* On hover the scrim lightens, but only to 0.87. That number is measured, not chosen: against
+   the brightest pixel of every generated card image, 0.87 puts .card__blurb/.card__meta at
+   4.64:1 and 0.80 puts it at 3.64:1 — below AA. An earlier revision shipped 0.80 and the
+   contrast check caught it. Re-measure before lowering it, and re-measure when adding art:
+   a brighter image moves this threshold. */
+@media (hover: hover) and (pointer: fine) {
+  .card--art.card--linked:hover {
+    background-image:
+      linear-gradient(180deg, rgba(10, 9, 8, 0.87) 0%, rgba(10, 9, 8, 0.94) 100%),
+      var(--art);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card--art.card--linked:hover { background-image:
+      linear-gradient(180deg, rgba(10, 9, 8, 0.88) 0%, rgba(10, 9, 8, 0.96) 100%),
+      var(--art); }
+}

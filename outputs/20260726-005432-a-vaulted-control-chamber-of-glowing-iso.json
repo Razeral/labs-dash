@@ -1,0 +1,14 @@
+{
+  "prompt": "a vaulted control chamber of glowing isolated memory cores in containment cradles, cables of light feeding each one, cel-shaded game art, dark charcoal background, warm ember orange and pale gold rim lighting, deep shadow, moody, atmospheric, no text, no letters, no words, no logos",
+  "sanitized_prompt": "a vaulted control chamber of glowing isolated memory cores in containment cradles, cables of light feeding each one, cel-shaded game art, dark charcoal background, warm ember orange and pale gold rim lighting, deep shadow, moody, atmospheric, no text, no letters, no words, no logos",
+  "final_prompt": "a vaulted control chamber of glowing isolated memory cores in containment cradles, cables of light feeding each one, cel-shaded game art, dark charcoal background, warm ember orange and pale gold rim lighting, deep shadow, moody, atmospheric, no text, no letters, no words, no logos, modern open-world anime cel-shaded video game art style, flat cel shading with crisp hard-edged shadow bands, bold clean outlines around forms, stylized vibrant foliage, highly saturated colors, dramatic bloom and rim lighting, sharp clean render, no text, no UI, no watermark",
+  "removed_terms": [],
+  "style": "Cel-shaded game",
+  "size": "1536x1024",
+  "quality": "high",
+  "format": "png",
+  "punch": 0.0,
+  "svg": false,
+  "model": "gpt-image-2",
+  "image": "20260726-005432-a-vaulted-control-chamber-of-glowing-iso.png"
+}
