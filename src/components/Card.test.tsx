@@ -48,4 +48,41 @@ describe('Card', () => {
     const { container } = render(<Card project={base} draggable={false} overridden onDragStart={noop} />)
     expect(container.querySelector('.card--overridden')).not.toBeNull()
   })
+
+  it('shows only the hostname in the meta line while linking to the full url', () => {
+    const host = 'https://stg.agents.ai.tech.gov.sg/frontend/hangar/'
+    render(<Card project={{ ...base, host }} draggable={false} overridden={false} onDragStart={noop} />)
+    expect(screen.getByRole('link')).toHaveAttribute('href', host)
+    expect(screen.getByText('stg.agents.ai.tech.gov.sg')).toBeInTheDocument()
+    expect(screen.queryByText(/frontend\/hangar/)).toBeNull()
+  })
+
+  it('shows fallen meta text for a fallen project', () => {
+    render(<Card project={{ ...base, tier: 'fallen', host: 'https://gone.example' }} draggable={false} overridden={false} onDragStart={noop} />)
+    expect(screen.getByText('† no longer answers')).toBeInTheDocument()
+  })
+
+  it('renders note when present and omits it when absent', () => {
+    const { rerender } = render(<Card project={{ ...base, note: 'test note' }} draggable={false} overridden={false} onDragStart={noop} />)
+    expect(screen.getByText('test note')).toBeInTheDocument()
+
+    rerender(<Card project={base} draggable={false} overridden={false} onDragStart={noop} />)
+    expect(screen.queryByText('test note')).toBeNull()
+  })
+
+  it('sets root element classes and data-slug correctly', () => {
+    const { container } = render(<Card project={{ ...base, host: 'https://x.example' }} draggable={false} overridden={false} onDragStart={noop} />)
+    const root = container.querySelector('a')
+    expect(root).toHaveClass('card')
+    expect(root).toHaveClass('card--living')
+    expect(root).toHaveClass('card--linked')
+    expect(root).toHaveAttribute('data-slug', 'x')
+
+    const { container: container2 } = render(<Card project={base} draggable={false} overridden={false} onDragStart={noop} />)
+    const root2 = container2.querySelector('div')
+    expect(root2).toHaveClass('card')
+    expect(root2).toHaveClass('card--living')
+    expect(root2).toHaveClass('card--inert')
+    expect(root2).toHaveAttribute('data-slug', 'x')
+  })
 })
