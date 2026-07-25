@@ -8,8 +8,10 @@ const fakeIdToken = (email: string) => {
   return `header.${payload}.signature`
 }
 
+// Realistic fixture: Cognito username is the email, so it contains dots.
+// This is how the cookie actually appears in production.
 const cookieWith = (email: string) =>
-  `foo=bar; CognitoIdentityServiceProvider.abc123.someone.idToken=${fakeIdToken(email)}; baz=qux`
+  `foo=bar; CognitoIdentityServiceProvider.5abc123def456.${email}.idToken=${fakeIdToken(email)}; baz=qux`
 
 describe('readEmailFromCookie', () => {
   it('extracts the email claim from the id token', () => {
@@ -26,6 +28,34 @@ describe('readEmailFromCookie', () => {
 
   it('returns null on an empty cookie string', () => {
     expect(readEmailFromCookie('')).toBeNull()
+  })
+
+  it('extracts email when the username (cookie key segment) contains dots', () => {
+    // Regression guard: the old regex required dot-free username, but real Cognito
+    // usernames are email addresses (with dots). This test ensures the implementation
+    // works with the actual cookie structure.
+    const realCookie = `foo=bar; CognitoIdentityServiceProvider.abc123.alice.bob@example.com.idToken=${fakeIdToken(OWNER)}; baz=qux`
+    expect(readEmailFromCookie(realCookie)).toBe(OWNER)
+  })
+
+  it('handles token values with base64 padding (= characters)', () => {
+    // Some payloads encode to base64 with = padding. The cookie value parser
+    // must rejoin on = to preserve the full token.
+    const payload = btoa(JSON.stringify({ email: OWNER }))
+    const token = `header.${payload}.signature`
+    const paddedCookie = `CognitoIdentityServiceProvider.abc123.${OWNER}.idToken=${token}`
+    expect(readEmailFromCookie(paddedCookie)).toBe(OWNER)
+  })
+
+  it('decodes base64url characters (- and _) in the payload', () => {
+    // Base64url uses - and _ instead of + and /. Ensure they are properly
+    // translated before decoding.
+    // Construct a payload that will encode with - or _ by crafting the JSON.
+    const payloadObj = { email: OWNER, sub: 'user-with_special.chars' }
+    const payload = btoa(JSON.stringify(payloadObj)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+    const token = `header.${payload}.signature`
+    const cookie = `CognitoIdentityServiceProvider.abc123.${OWNER}.idToken=${token}`
+    expect(readEmailFromCookie(cookie)).toBe(OWNER)
   })
 })
 
