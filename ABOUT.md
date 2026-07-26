@@ -114,6 +114,23 @@ a centred `max-width` column and no negative margin can bleed a child to the vie
 The title sits in the frame's dark negative space above the door's bright central seam, and the
 scrim fades to `--ground` at the bottom so the first rank emerges from the scene.
 
+The door is a still, given life by three CSS layers rather than a video — a generated clip does
+not loop, and a 3s cut under a hero is worse than a still. All three are **position
+independent** by design: `background-size: cover` crops the door differently at every viewport,
+so anything pinned to a brazier's pixel coordinates slides off it on another screen. The one
+stable fact is that the seam runs vertically down the horizontal centre.
+
+- `.hero__seam` — a tall bloom on the centre line, breathing in width and intensity, `screen`
+  blended so it adds light rather than painting over the art.
+- `.hero__flicker` — firelight across the whole frame on **irregular** `steps()`. A smooth sine
+  reads as a UI element; a ragged one reads as flame. Everything warm gutters together because
+  it is all lit by the same fire.
+- `.hero__embers` — 12 motes, each with its own column, delay and duration from `--i`, so no
+  two rise together.
+
+Under `prefers-reduced-motion` the embers are removed entirely and the other two freeze at a
+fixed opacity — the gap still reads as lit rather than as a dark line.
+
 ### Card click targets
 
 A card carries **two** controls, not one:
