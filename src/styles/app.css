@@ -469,36 +469,22 @@ body {
 .card--risen::after {
   background-image: radial-gradient(95% 75% at 50% 0%, var(--ember-glow), transparent 60%);
   opacity: 0.1;
-  animation: gutter 7s steps(1, end) infinite;
+  animation: gutter 9s ease-in-out infinite;
 }
 
 @keyframes gutter {
-  0%,
-  46%,
-  100% {
-    opacity: 0.1;
-  }
-  47% {
-    opacity: 0.5;
-  }
-  48% {
-    opacity: 0.12;
-  }
-  49.4% {
-    opacity: 0.62;
-  }
-  50.6% {
-    opacity: 0.14;
-  }
-  72% {
-    opacity: 0.1;
-  }
-  73% {
-    opacity: 0.44;
-  }
-  73.9% {
-    opacity: 0.12;
-  }
+  /* The Risen tier is the undead rank, so its ambient guesses at something half-alive. It
+     used hard steps() jumps between 0.1 and 0.62, which is the same stepped-luminance
+     mistake the hero made at full-screen scale — attention-grabbing rather than uneasy, and
+     it would become a tic the moment this rank holds more than one card. Now it swells and
+     sags on a continuous curve, twice per cycle, with the peak pulled down. */
+  0%, 100% { opacity: 0.10; }
+  44%      { opacity: 0.12; }
+  50%      { opacity: 0.34; }
+  56%      { opacity: 0.13; }
+  70%      { opacity: 0.11; }
+  76%      { opacity: 0.26; }
+  82%      { opacity: 0.11; }
 }
 
 /* The Fallen: recessed, desaturated, completely still. Stillness and the
@@ -699,9 +685,27 @@ body {
   display: grid;
   grid-template-rows: 1fr auto;
   justify-items: center;
+  overflow: hidden;
+}
+
+/* The door itself, on its own layer so it can be transformed — an element cannot scale its
+   own background-image, and animating background-size is not compositor work. 24s and 4%:
+   slow and small enough that you never catch it moving. Motion is what makes a still scene
+   feel alive; changing its brightness just reads as a fault. */
+.hero__scene {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
   background-size: cover;
   background-position: center 40%;
   background-repeat: no-repeat;
+  transform-origin: 50% 58%;
+  animation: scene-drift 24s ease-in-out infinite alternate;
+}
+
+@keyframes scene-drift {
+  from { transform: scale(1); }
+  to   { transform: scale(1.04); }
 }
 
 /* Scrim: darkens the top for the title and fades the bottom into the board. */
@@ -958,17 +962,21 @@ body {
 }
 
 /* ── The door, alive ──────────────────────────────────────────────────────────
-   The door is a still. These three layers give it life without a video — a generated clip
-   would not loop, and a 3s cut under a hero is worse than a still.
+   RULE, learned the hard way: nothing covering a large area may animate its brightness.
+   The first version here was a full-viewport `screen` layer stepping between 0.48 and 1
+   about three times a second. It did not read as firelight — the whole screen strobed, and
+   large-area luminance flashing at that rate is a photosensitivity trigger, not a style
+   choice. It was deleted, not tuned down.
 
-   All three are position-INDEPENDENT on purpose. `background-size: cover` crops the door
-   differently at every viewport, so anything pinned to a brazier's pixel coordinates would
-   slide off it on a different screen. The one stable fact is that the seam runs vertically
-   down the horizontal centre; the rest is modelled as how firelight behaves, not as where
-   the fire is. */
+   What replaced it models the scene BREATHING rather than the light PULSING:
+     - the door drifts        (transform, 24s, 4%)  — .hero__scene, above
+     - the seam breathes      (small bloom, 9s, 0.88 -> 1, continuous)
+     - a few embers rise      (3px dots on transforms)
+
+   Two properties must stay true of anything added here: it animates transform, or it
+   animates opacity over a SMALL area; and every curve is continuous, never stepped. */
 
 .hero__seam,
-.hero__flicker,
 .hero__embers {
   position: absolute;
   inset: 0;
@@ -976,78 +984,54 @@ body {
   pointer-events: none;
 }
 
-/* The gap between the doors. A tall narrow bloom on the centre line, breathing in width and
-   intensity as if something behind the door is shifting. `screen` so it adds light rather
-   than painting over the art. */
+/* The gap between the doors. The layer is full-bleed but the painted bloom is only ~20% x 42%
+   of the frame, so the area that actually changes stays small. Amplitude is narrow on purpose:
+   at a glance you should not be able to tell it is moving, only if you stare. */
 .hero__seam {
   mix-blend-mode: screen;
   background: radial-gradient(
-    22% 46% at 50% 58%,
-    rgba(255, 186, 92, 0.42) 0%,
-    rgba(255, 140, 48, 0.16) 42%,
+    20% 42% at 50% 58%,
+    rgba(255, 186, 92, 0.40) 0%,
+    rgba(255, 140, 48, 0.14) 44%,
     transparent 72%
   );
-  animation: seam-breathe 5.5s ease-in-out infinite;
+  animation: seam-breathe 9s ease-in-out infinite;
 }
 
 @keyframes seam-breathe {
-  0%, 100% { opacity: 0.72; transform: scaleX(0.94); }
-  38%      { opacity: 1;    transform: scaleX(1.06); }
-  61%      { opacity: 0.85; transform: scaleX(0.99); }
+  0%, 100% { opacity: 0.88; transform: scaleX(0.99); }
+  50%      { opacity: 1;    transform: scaleX(1.03); }
 }
 
-/* Firelight over the whole frame. The braziers, the sconces and the seam all gutter together
-   because they are lit by the same fire — irregular steps, never a smooth sine, because a
-   smooth pulse reads as a UI element and a ragged one reads as flame. */
-.hero__flicker {
-  mix-blend-mode: screen;
-  background: radial-gradient(120% 80% at 50% 72%, rgba(255, 138, 46, 0.20) 0%, transparent 68%);
-  animation: firelight 3.7s steps(1, end) infinite;
-}
-
-@keyframes firelight {
-  0%   { opacity: 0.55; }
-  9%   { opacity: 0.92; }
-  17%  { opacity: 0.48; }
-  26%  { opacity: 1;    }
-  34%  { opacity: 0.7;  }
-  47%  { opacity: 0.86; }
-  55%  { opacity: 0.5;  }
-  68%  { opacity: 0.95; }
-  79%  { opacity: 0.62; }
-  88%  { opacity: 0.8;  }
-  100% { opacity: 0.55; }
-}
-
-/* Embers lifting off the fires. Each rises the full height on its own schedule. */
+/* Embers lifting off the fires. Transform-driven 3px dots — no large-area luminance change. */
 .hero__embers { overflow: hidden; }
 
 .hero__ember {
   position: absolute;
   bottom: -2%;
-  left: calc(8% + var(--i) * 7.1%);
+  left: calc(12% + var(--i) * 10.4%);
   width: 3px;
   height: 3px;
   border-radius: 50%;
-  background: rgba(255, 176, 84, 0.9);
-  box-shadow: 0 0 6px 1px rgba(255, 140, 48, 0.55);
+  background: rgba(255, 176, 84, 0.85);
+  box-shadow: 0 0 6px 1px rgba(255, 140, 48, 0.45);
   opacity: 0;
-  animation: ember-rise calc(9s + var(--i) * 1.3s) linear infinite;
-  animation-delay: calc(var(--i) * -1.7s);
+  animation: ember-rise calc(14s + var(--i) * 2.1s) linear infinite;
+  animation-delay: calc(var(--i) * -2.9s);
 }
 
 @keyframes ember-rise {
-  0%   { opacity: 0;    transform: translate3d(0, 0, 0) scale(0.6); }
-  12%  { opacity: 0.85; }
-  50%  { transform: translate3d(14px, -46vh, 0) scale(1); }
-  78%  { opacity: 0.35; }
-  100% { opacity: 0;    transform: translate3d(-10px, -92vh, 0) scale(0.5); }
+  0%   { opacity: 0;   transform: translate3d(0, 0, 0) scale(0.6); }
+  14%  { opacity: 0.7; }
+  50%  { transform: translate3d(12px, -44vh, 0) scale(1); }
+  80%  { opacity: 0.25; }
+  100% { opacity: 0;   transform: translate3d(-8px, -88vh, 0) scale(0.5); }
 }
 
-/* A still door is the honest fallback: no breathing, no gutter, no embers. The seam keeps a
-   fixed bloom so the gap still reads as lit rather than as a dark line. */
+/* A still door is the honest fallback. The seam keeps a fixed bloom so the gap still reads as
+   lit rather than as a dark line. */
 @media (prefers-reduced-motion: reduce) {
-  .hero__seam { animation: none !important; opacity: 0.85 !important; transform: none !important; }
-  .hero__flicker { animation: none !important; opacity: 0.7 !important; }
+  .hero__scene { animation: none !important; transform: none !important; }
+  .hero__seam { animation: none !important; opacity: 0.94 !important; transform: none !important; }
   .hero__embers { display: none !important; }
 }

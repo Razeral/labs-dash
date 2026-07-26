@@ -114,22 +114,29 @@ a centred `max-width` column and no negative margin can bleed a child to the vie
 The title sits in the frame's dark negative space above the door's bright central seam, and the
 scrim fades to `--ground` at the bottom so the first rank emerges from the scene.
 
-The door is a still, given life by three CSS layers rather than a video — a generated clip does
-not loop, and a 3s cut under a hero is worse than a still. All three are **position
-independent** by design: `background-size: cover` crops the door differently at every viewport,
-so anything pinned to a brazier's pixel coordinates slides off it on another screen. The one
-stable fact is that the seam runs vertically down the horizontal centre.
+The door is a still, given life in CSS. **The life comes from the scene moving, not from the
+light changing brightness.**
 
-- `.hero__seam` — a tall bloom on the centre line, breathing in width and intensity, `screen`
-  blended so it adds light rather than painting over the art.
-- `.hero__flicker` — firelight across the whole frame on **irregular** `steps()`. A smooth sine
-  reads as a UI element; a ragged one reads as flame. Everything warm gutters together because
-  it is all lit by the same fire.
-- `.hero__embers` — 12 motes, each with its own column, delay and duration from `--i`, so no
-  two rise together.
+- `.hero__scene` — the door on its own layer so it can be transformed (an element cannot scale
+  its own `background-image`). A 24s, 4% drift: slow and small enough that you never catch it.
+- `.hero__seam` — a bloom on the centre line breathing 0.88 → 1 over 9s, continuous. The layer
+  is full-bleed but the painted gradient is only ~20% × 42% of the frame, so the area that
+  actually changes stays small.
+- `.hero__embers` — 8 motes, each with its own column, delay and duration from `--i`.
 
-Under `prefers-reduced-motion` the embers are removed entirely and the other two freeze at a
-fixed opacity — the gap still reads as lit rather than as a dark line.
+> **Rule, learned the hard way: nothing covering a large area may animate its brightness.**
+> The first version had a full-viewport `screen` layer stepping between 0.48 and 1 about three
+> times a second. It did not read as firelight — the whole screen strobed, and large-area
+> luminance flashing at that rate is a photosensitivity trigger, not a style choice. It was
+> deleted, not tuned down. The same stepped-luminance pattern was also removed from The Risen's
+> card ambient. Measured after: the seam's largest frame-to-frame change is **0.007**, against
+> ~0.5 instantaneous before.
+>
+> Anything added here must animate `transform`, or animate opacity over a **small** area, and
+> every curve must be continuous — never `steps()`.
+
+Under `prefers-reduced-motion` the embers are removed and the drift and breathe freeze; the seam
+holds a fixed bloom so the gap still reads as lit rather than as a dark line.
 
 ### Card click targets
 
