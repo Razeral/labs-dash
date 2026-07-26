@@ -688,16 +688,28 @@ body {
   overflow: hidden;
 }
 
-/* The door itself, on its own layer so it can be transformed — an element cannot scale its
-   own background-image, and animating background-size is not compositor work. 24s and 4%:
-   slow and small enough that you never catch it moving. Motion is what makes a still scene
-   feel alive; changing its brightness just reads as a fault. */
+/* The door lives inside a frame that reproduces `background-size: cover` as a REAL BOX. That
+   is the whole trick behind the brazier glows: with the art as a background-image, a child
+   positioned at "28.5%" is a percentage of the element, which drifts away from the fire as
+   soon as the crop changes. With a frame that is exactly the covering rectangle, a child at
+   28.5% is a percentage of the IMAGE and stays welded to its brazier at every viewport.
+
+   Cover maths for a 1600x1066 (3:2) image in a 100vw x 100dvh box: take the width that is
+   the larger of the viewport width and the width implied by filling the height. */
 .hero__scene {
   position: absolute;
   inset: 0;
   z-index: 0;
-  background-size: cover;
-  background-position: center 40%;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+
+.hero__frame {
+  position: relative;
+  width: max(100vw, calc(100dvh * 1600 / 1066));
+  aspect-ratio: 1600 / 1066;
+  background-size: 100% 100%;
   background-repeat: no-repeat;
   transform-origin: 50% 58%;
   animation: scene-drift 24s ease-in-out infinite alternate;
@@ -976,7 +988,6 @@ body {
    Two properties must stay true of anything added here: it animates transform, or it
    animates opacity over a SMALL area; and every curve is continuous, never stepped. */
 
-.hero__seam,
 .hero__embers {
   position: absolute;
   inset: 0;
@@ -984,18 +995,52 @@ body {
   pointer-events: none;
 }
 
-/* The gap between the doors. The layer is full-bleed but the painted bloom is only ~20% x 42%
-   of the frame, so the area that actually changes stays small. Amplitude is narrow on purpose:
-   at a glance you should not be able to tell it is moving, only if you stare. */
+/* The gap between the doors, at the seam's measured position in the art (x 51%, running
+   y 38%-92%). Narrow amplitude on a small painted area: at a glance you should not be able to
+   tell it is moving, only if you stare. */
 .hero__seam {
+  position: absolute;
+  left: 51%;
+  top: 65%;
+  width: 16%;
+  height: 56%;
+  transform: translate(-50%, -50%);
   mix-blend-mode: screen;
   background: radial-gradient(
-    20% 42% at 50% 58%,
-    rgba(255, 186, 92, 0.40) 0%,
-    rgba(255, 140, 48, 0.14) 44%,
+    50% 50% at 50% 50%,
+    rgba(255, 186, 92, 0.42) 0%,
+    rgba(255, 140, 48, 0.15) 46%,
     transparent 72%
   );
   animation: seam-breathe 9s ease-in-out infinite;
+}
+
+/* A brazier. THIS is the pulsating point — and it is safe precisely because it is a point:
+   ~12% of the frame's width, so a 0.55 -> 1 swing lights one bowl of fire rather than the
+   room. The rule is about AREA, not about pulsing. Each fire runs on its own duration and a
+   negative delay so the two never beat together. */
+.hero__flame {
+  position: absolute;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  mix-blend-mode: screen;
+  background: radial-gradient(
+    circle,
+    rgba(255, 196, 112, 0.55) 0%,
+    rgba(255, 142, 50, 0.24) 34%,
+    rgba(255, 120, 40, 0.08) 56%,
+    transparent 72%
+  );
+  animation-name: flame-pulse;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+@keyframes flame-pulse {
+  0%, 100% { opacity: 0.58; transform: translate(-50%, -50%) scale(0.94); }
+  43%      { opacity: 1;    transform: translate(-50%, -50%) scale(1.07); }
+  68%      { opacity: 0.74; transform: translate(-50%, -50%) scale(1.0); }
 }
 
 @keyframes seam-breathe {
@@ -1031,7 +1076,8 @@ body {
 /* A still door is the honest fallback. The seam keeps a fixed bloom so the gap still reads as
    lit rather than as a dark line. */
 @media (prefers-reduced-motion: reduce) {
-  .hero__scene { animation: none !important; transform: none !important; }
-  .hero__seam { animation: none !important; opacity: 0.94 !important; transform: none !important; }
+  .hero__frame { animation: none !important; transform: none !important; }
+  .hero__seam { animation: none !important; opacity: 0.94 !important; }
+  .hero__flame { animation: none !important; opacity: 0.8 !important; }
   .hero__embers { display: none !important; }
 }

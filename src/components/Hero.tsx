@@ -6,18 +6,43 @@ type Props = { count: number }
 // a single shared animation reads as a machine rather than as fire.
 const EMBERS = Array.from({ length: 8 }, (_, i) => i)
 
+// The fires in the door art, located by scanning the image for warm bright blobs rather than by
+// eye. Coordinates are percentages OF THE IMAGE, which is why .hero__frame reproduces
+// `cover` as a real box instead of using background-size: children positioned in % then crop
+// with the art and stay on their fire at every viewport. A glow pinned to the hero element
+// instead would slide off the moment the aspect ratio changed.
+const FIRES = [
+  { x: 28.5, y: 72.2, size: 13, dur: 2.7, delay: 0 },
+  { x: 74.0, y: 74.4, size: 12, dur: 3.4, delay: -1.3 }
+]
+
 // A full-viewport threshold. The board proper begins below it, so arriving at the site means
-// arriving at a door rather than at a list — and the art gets seen at full size by everyone,
-// including on touch and in a screenshot.
+// arriving at a door rather than at a list.
 //
-// The door is a still, given life in CSS. The life comes from the SCENE MOVING, not from
-// brightness changing: a very slow scale drift on the image, a gentle breathe confined to the
-// seam, and a few embers. An earlier version animated luminance across a full-viewport layer,
-// which made the whole screen strobe — see app.css for the rule that replaced it.
+// The door is a still, given life in CSS. The life is LOCAL: the scene drifts, the seam
+// breathes, and each brazier pulses on its own clock. An earlier version animated brightness
+// across a full-viewport layer, which strobed the whole screen — see app.css.
 export const Hero = ({ count }: Props) => (
   <header className="hero">
-    <div className="hero__scene" style={{ backgroundImage: `url(${doorUrl})` }} aria-hidden="true" />
-    <div className="hero__seam" aria-hidden="true" />
+    <div className="hero__scene" aria-hidden="true">
+      <div className="hero__frame" style={{ backgroundImage: `url(${doorUrl})` }}>
+        <div className="hero__seam" />
+        {FIRES.map((f, i) => (
+          <span
+            key={i}
+            className="hero__flame"
+            style={{
+              left: `${f.x}%`,
+              top: `${f.y}%`,
+              width: `${f.size}%`,
+              animationDuration: `${f.dur}s`,
+              animationDelay: `${f.delay}s`
+            }}
+          />
+        ))}
+      </div>
+    </div>
+
     <div className="hero__embers" aria-hidden="true">
       {EMBERS.map((i) => (
         <span key={i} className="hero__ember" style={{ ['--i' as string]: i }} />

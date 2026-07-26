@@ -117,11 +117,20 @@ scrim fades to `--ground` at the bottom so the first rank emerges from the scene
 The door is a still, given life in CSS. **The life comes from the scene moving, not from the
 light changing brightness.**
 
-- `.hero__scene` — the door on its own layer so it can be transformed (an element cannot scale
-  its own `background-image`). A 24s, 4% drift: slow and small enough that you never catch it.
-- `.hero__seam` — a bloom on the centre line breathing 0.88 → 1 over 9s, continuous. The layer
-  is full-bleed but the painted gradient is only ~20% × 42% of the frame, so the area that
-  actually changes stays small.
+- `.hero__frame` — the door inside a box that reproduces `background-size: cover` **as a real
+  rectangle**. This is the trick that makes the rest possible: with the art as a
+  `background-image`, a child at `28.5%` is a percentage of the *element* and drifts off its
+  target as soon as the crop changes; with a frame that is exactly the covering rectangle, a
+  child at `28.5%` is a percentage of the *image* and stays welded to it at every viewport.
+  Cover maths for the 1600×1066 (3:2) art: `width: max(100vw, calc(100dvh * 1600 / 1066))`
+  plus `aspect-ratio`. It drifts 4% over 24s.
+- `.hero__seam` — the gap between the doors, at the seam's measured position (x 51%, spanning
+  y 38–92%), breathing 0.88 → 1 over 9s.
+- `.hero__flame` ×2 — **the pulsating points**, at the braziers' measured coordinates
+  (28.5%/72.2% and 74.0%/74.4%, found by scanning the image for warm bright blobs rather than
+  by eye). Each is ~12% of the frame's width — about **3% of the screen** — so a 0.58 → 1 swing
+  with a scale lights one bowl of fire rather than the room. Separate durations and a negative
+  delay keep the two from beating together.
 - `.hero__embers` — 8 motes, each with its own column, delay and duration from `--i`.
 
 > **Rule, learned the hard way: nothing covering a large area may animate its brightness.**
@@ -132,8 +141,10 @@ light changing brightness.**
 > card ambient. Measured after: the seam's largest frame-to-frame change is **0.007**, against
 > ~0.5 instantaneous before.
 >
-> Anything added here must animate `transform`, or animate opacity over a **small** area, and
-> every curve must be continuous — never `steps()`.
+> The rule is about **area, not about pulsing**. A brazier glow pulses harder than the layer
+> that was removed — 0.58 → 1 — and is completely safe, because it covers 3% of the screen
+> instead of all of it. Anything added here must animate `transform`, or animate opacity over a
+> **small** area, and every curve must be continuous — never `steps()`.
 
 Under `prefers-reduced-motion` the embers are removed and the drift and breathe freeze; the seam
 holds a fixed bloom so the gap still reads as lit rather than as a dark line.
