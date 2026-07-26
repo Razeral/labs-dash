@@ -701,23 +701,32 @@ body {
   inset: 0;
   z-index: 0;
   overflow: hidden;
-  display: grid;
-  place-items: center;
 }
 
+/* Centred by explicit offset + translate, NOT by grid/flex alignment. The frame is
+   deliberately WIDER than the viewport (that is what `cover` means), and centring an
+   overflowing item with `place-items: center` is exactly the case engines disagree about —
+   several treat it as `safe center`, which snaps the item to the start edge. On a wide screen
+   the overflow is small and nobody notices; on a near-square viewport the frame is ~860px
+   wider than the screen and the door visibly slides off centre. Absolute + translate is
+   unambiguous everywhere.
+   The 40% vertical bias keeps the door's head in frame instead of centring on the floor. */
 .hero__frame {
-  position: relative;
-  width: max(100vw, calc(100dvh * 1600 / 1066));
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  width: max(100%, calc(100dvh * 1600 / 1066));
   aspect-ratio: 1600 / 1066;
   background-size: 100% 100%;
   background-repeat: no-repeat;
+  transform: translate(-50%, -40%);
   transform-origin: 50% 58%;
   animation: scene-drift 24s ease-in-out infinite alternate;
 }
 
 @keyframes scene-drift {
-  from { transform: scale(1); }
-  to   { transform: scale(1.04); }
+  from { transform: translate(-50%, -40%) scale(1); }
+  to   { transform: translate(-50%, -40%) scale(1.04); }
 }
 
 /* Scrim: darkens the top for the title and fades the bottom into the board. */

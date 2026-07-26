@@ -122,8 +122,17 @@ light changing brightness.**
   `background-image`, a child at `28.5%` is a percentage of the *element* and drifts off its
   target as soon as the crop changes; with a frame that is exactly the covering rectangle, a
   child at `28.5%` is a percentage of the *image* and stays welded to it at every viewport.
-  Cover maths for the 1600×1066 (3:2) art: `width: max(100vw, calc(100dvh * 1600 / 1066))`
+  Cover maths for the 1600×1066 (3:2) art: `width: max(100%, calc(100dvh * 1600 / 1066))`
   plus `aspect-ratio`. It drifts 4% over 24s.
+
+  **It is centred by `left: 50%` + `translate(-50%, -40%)`, never by grid or flex alignment.**
+  The frame is deliberately wider than the viewport — that is what `cover` means — and
+  centring an *overflowing* item is precisely the case engines disagree on: several treat
+  `place-items: center` as `safe center` and snap the item to the start edge. On a wide screen
+  the overflow is tens of pixels and nobody notices; on a near-square viewport the frame is
+  ~860px wider than the screen and the door visibly slides off centre while the title stays
+  put. Verified symmetric at aspect 1.73, 1.00 and 0.67. The centring translate is repeated
+  inside the drift keyframes, or the frame jumps to the corner the moment the animation runs.
 - `.hero__seam` — the gap between the doors, at the seam's measured position (x 51%, spanning
   y 38–92%), breathing 0.88 → 1 over 9s.
 - `.hero__flame` ×2 — **the pulsating points**, at the braziers' measured coordinates
