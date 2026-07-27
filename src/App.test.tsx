@@ -331,11 +331,21 @@ describe('App', () => {
     }
   })
 
-  it('keeps art off the ranks that rely on stillness', () => {
+  it('keeps art off The Fallen alone', () => {
     const { container } = render(<App />)
-    for (const tier of ['dormant', 'risen', 'fallen']) {
+    // The Fallen is the only rank withheld from: a tombstone carrying a scene stops reading
+    // as a tombstone. Every other rank gets art and distinguishes itself by the art's mood.
+    for (const card of container.querySelectorAll('.tier--fallen [data-slug]')) {
+      expect(card.classList.contains('card--art')).toBe(false)
+    }
+  })
+
+  it('gives dormant and risen cards art despite having no host', () => {
+    const { container } = render(<App />)
+    for (const tier of ['dormant', 'risen']) {
       for (const card of container.querySelectorAll(`.tier--${tier} [data-slug]`)) {
-        expect(card.classList.contains('card--art')).toBe(false)
+        const slug = card.getAttribute('data-slug') as string
+        if (cardArt[slug]) expect(card.classList.contains('card--art')).toBe(true)
       }
     }
   })

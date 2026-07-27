@@ -85,11 +85,19 @@ Two layers of generated cel-shaded art, both produced with the `imagine` CLI fro
 project's own description and committed as JPEGs.
 
 **Card art** — `src/assets/cards/<slug>.jpg`, discovered by `import.meta.glob`, so dropping a
-file in is the whole act of adding art; there is no registry to keep in sync. It renders for the **living** (which must also have a **host** — art is for something you can
-go and see) and for the **ascended**. The ascended are a deliberate exception: they have no host
-of their own *precisely because* they graduated, and their scene is the record of what they
-became. Dormant, risen and fallen stay bare — lush art would fight the stillness those ranks
-depend on. The rule lives in `App.tsx`, not in the file's presence.
+file in is the whole act of adding art; there is no registry to keep in sync. It renders for every rank **except The Fallen**. A *living* project must also have a `host` —
+art is for something you can go and see. The ascended, dormant and risen get art without one:
+the ascended because they graduated, the dormant because they are still standing, the risen
+because something is still running in there.
+
+**The Fallen is the one rank withheld from, and that is the point of it** — a tombstone carrying
+a scene stops reading as a tombstone. Absence is the signal there.
+
+The ranks stay distinguishable through the art's **mood**, not its presence. The living and
+ascended are warm and lit; the dormant are cold pale moonlight, dust motes and empty chairs; the
+risen is fog, settled dust and instruments still running with nobody at the console. Measured:
+the dormant/risen set averages **0.025** mean luminance against **0.034** for living/ascended —
+quieter by construction, not by chance. The rule lives in `App.tsx`, not in the file's presence.
 
 Cards with art are **poster tiles**: the art runs full-bleed and near-undimmed across the top,
 and the text cluster is pushed to the bottom onto a plateau of `--ground`. The gradient stops

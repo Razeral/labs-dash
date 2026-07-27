@@ -33,15 +33,17 @@ export const App = () => {
 
   const resolved = useMemo(() => applyOverrides(roster, overrides), [overrides])
 
-  // Art belongs to the ranks that earned it: the living, and the ascended. A living project
-  // needs a host — art is for something you can actually go and see. The ascended are the
-  // exception and deliberately so: they have no host of their own precisely because they
-  // graduated, and their scene is the record of what they became. Dormant, risen and fallen
-  // stay bare — a lush background would fight the stillness those ranks depend on.
+  // Art belongs to every rank that still has something to show. A living project needs a
+  // host — art is for something you can go and see. The ascended, dormant and risen get art
+  // without one: the ascended because they graduated, the dormant because they are still
+  // standing, the risen because something is still running in there. Only The Fallen stays
+  // bare, and that is the point of it — a tombstone with a scene would stop reading as a
+  // tombstone. The art itself carries the rank's mood, so the ranks stay distinguishable
+  // without withholding it.
   const artBySlug = useMemo(
     () => Object.fromEntries(
       resolved
-        .filter((p) => (p.tier === 'ascended' || (p.tier === 'living' && p.host)) && cardArt[p.slug])
+        .filter((p) => p.tier !== 'fallen' && (p.tier !== 'living' || p.host) && cardArt[p.slug])
         .map((p) => [p.slug, cardArt[p.slug]])
     ),
     [resolved]
