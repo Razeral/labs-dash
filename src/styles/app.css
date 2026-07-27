@@ -1090,3 +1090,11 @@ body {
   .hero__flame { animation: none !important; opacity: 0.8 !important; }
   .hero__embers { display: none !important; }
 }
+
+/* An ascended project may still serve something of its own (harness-site does). The ascension
+   line keeps the primary slot because it is what puts the card in this rank; its live host
+   sits beneath, quieter, as the thing you can actually click. */
+.card__host {
+  margin-top: calc(var(--space-1) * -0.5);
+  font-size: var(--step-1);
+}

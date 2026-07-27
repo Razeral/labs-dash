@@ -35,8 +35,13 @@ cost time. This file is only how to act in it.
   "bestiary of N works" subtitle both follow automatically.
 - **Promote to Ascended** — set `"tier": "ascended"` *and* add
   `"absorbedInto": { "name": "Compliance API Dashboard", "slug": "compliance-api-dashboard" }`.
-  The `slug` is optional and only needed when the successor is itself on the board; with it, the
-  card links through to the successor's host. A test enforces ascended-iff-`absorbedInto`.
+  The `slug` is optional and only needed when the successor is itself on the board. A test
+  enforces ascended-iff-`absorbedInto`.
+- **An ascended project may keep its own `host`.** Being absorbed and still being reachable are
+  different things — `aiap-finops` and `harness-site` are both. The card shows the ascension as
+  its primary line (that is what puts it in the rank) with its live host beneath, and links to
+  **its own host in preference to the successor's**; the successor is the fallback for a
+  graduate that no longer serves anything itself. Only `fallen` refuses a link outright.
 
 `projects` is sorted by tier then name so the file reads top-to-bottom as the tier list itself.
 Nothing depends on that order — the app groups by `tier` — so a re-sort is cosmetic.

@@ -117,4 +117,33 @@ describe('Card', () => {
     fireEvent.click(screen.getByRole('button', { name: /details for x/i }))
     expect(onOpen).toHaveBeenCalledWith('x')
   })
+
+  it('links an ascended project to its OWN host when it still has one', () => {
+    const p: Project = {
+      ...base,
+      tier: 'ascended',
+      host: 'https://still-live.example',
+      absorbedInto: { name: 'Successor', slug: 'succ' }
+    }
+    render(<Card project={p} successorHost="https://successor.example" draggable={false} overridden={false} onDragStart={noop} onOpen={noop} />)
+    // The ascension still explains the rank...
+    expect(screen.getByText(/ascended into Successor/)).toBeInTheDocument()
+    // ...but the live link goes where you can actually go, not to the successor.
+    const link = screen.getByRole('link')
+    expect(link).toHaveAttribute('href', 'https://still-live.example')
+    expect(link).toHaveTextContent('still-live.example')
+  })
+
+  it('falls back to the successor host when an ascended project serves nothing itself', () => {
+    const p: Project = { ...base, tier: 'ascended', absorbedInto: { name: 'Successor', slug: 'succ' } }
+    render(<Card project={p} successorHost="https://successor.example" draggable={false} overridden={false} onDragStart={noop} onOpen={noop} />)
+    expect(screen.getByRole('link')).toHaveAttribute('href', 'https://successor.example')
+  })
+
+  it('still refuses a link for a fallen project that records a host', () => {
+    const p: Project = { ...base, tier: 'fallen', host: 'https://gone.example' }
+    render(<Card project={p} draggable={false} overridden={false} onDragStart={noop} onOpen={noop} />)
+    expect(screen.queryByRole('link')).toBeNull()
+    expect(screen.getByText('† no longer answers')).toBeInTheDocument()
+  })
 })

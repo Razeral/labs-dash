@@ -8,9 +8,10 @@
     "writer"
   ],
   "projects": [
-    { "name": "AIAP FinOps", "tier": "living", "slug": "aiap-finops",
+    { "name": "AIAP FinOps", "tier": "ascended", "slug": "aiap-finops",
       "blurb": "AWS cost attribution and tagging-gap audit for the AIAP account",
-      "host": "https://finops.ai.tech.gov.sg"
+      "host": "https://finops.ai.tech.gov.sg",
+      "absorbedInto": {"name":"FinOps Dashboard"}
     },
     { "name": "Bootstrap MCP", "tier": "living", "slug": "bootstrap-mcp",
       "blurb": "Bootstrap scaffolding for MCP servers"
@@ -155,7 +156,7 @@
     },
     { "name": "Devenv Gateway", "tier": "ascended", "slug": "devenv-gateway",
       "blurb": "Containerized dev-environment gateway wrapping Claude Code CLI, tmux, files, git in one API",
-      "absorbedInto": {"name":"Continuum", "slug":"continuum"}
+      "absorbedInto": {"name":"Continuum","slug":"continuum"}
     },
     { "name": "Wowdocs", "tier": "fallen", "slug": "doc-generator",
       "blurb": "Auto-generated Docusaurus docs for internal repos, published behind one landing page"

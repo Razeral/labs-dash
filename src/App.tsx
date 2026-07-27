@@ -244,7 +244,10 @@ export const App = () => {
             openProject.tier === 'fallen'
               ? undefined
               : openProject.tier === 'ascended'
-                ? (openProject.absorbedInto?.slug ? hostBySlug[openProject.absorbedInto.slug] : undefined)
+                // Mirrors Card: an ascended project's own host wins; the successor's is the
+                // fallback for a graduate that no longer serves anything itself.
+                ? openProject.host ??
+                  (openProject.absorbedInto?.slug ? hostBySlug[openProject.absorbedInto.slug] : undefined)
                 : openProject.host
           }
           onClose={() => setOpenSlug(null)}
