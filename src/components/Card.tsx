@@ -3,10 +3,7 @@ import type { Project } from '../types'
 type Props = {
   project: Project
   successorHost?: string
-  draggable: boolean
-  overridden: boolean
   art?: string
-  onDragStart: (slug: string) => void
   onOpen: (slug: string) => void
 }
 
@@ -15,10 +12,7 @@ const hostLabel = (host: string) => new URL(host).hostname
 export const Card = ({
   project,
   successorHost,
-  draggable,
-  overridden,
   art,
-  onDragStart,
   onOpen
 }: Props) => {
   const { slug, name, blurb, tier, host, absorbedInto, note } = project
@@ -50,7 +44,6 @@ export const Card = ({
     'card',
     `card--${tier}`,
     href ? 'card--linked' : 'card--inert',
-    overridden ? 'card--overridden' : '',
     art ? 'card--art' : ''
   ].filter(Boolean).join(' ')
 
@@ -65,8 +58,6 @@ export const Card = ({
   return (
     <div
       className={className}
-      draggable={draggable}
-      onDragStart={() => onDragStart(slug)}
       data-slug={slug}
       {...(art ? { style: { ['--art' as string]: `url(${art})` } } : {})}
     >

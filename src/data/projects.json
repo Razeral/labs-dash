@@ -107,6 +107,7 @@
     },
     { "name": "Editor", "tier": "ascended", "slug": "editor",
       "blurb": "Multi-tenant GitLab repo editor and AgentCore agent tester",
+      "host": "https://harness.ai.tech.gov.sg",
       "absorbedInto": {"name":"Harness"}
     },
     { "name": "MCPScan", "tier": "ascended", "slug": "mcpscan",

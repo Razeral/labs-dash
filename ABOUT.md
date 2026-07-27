@@ -34,7 +34,7 @@ top → grouped by tier → rendered. One direction.
 | WAF ACL | `labs-dash-cf-waf` `62dd88a9-f202-4c20-95be-316c273df129` (`us-east-1`, scope CLOUDFRONT) |
 | Certificate | `f053a5a8-7d8b-409c-b733-c4801a2485cf` — `*.labs.ai.tech.gov.sg` **with the apex as a SAN**. **Expires 2026-12-12.** |
 | Cognito pool | `ap-southeast-1_zhuDvtEBS` (shared, `labs-auth`) |
-| App client | `labs-dash` = `1clu7qnljgrmvbusf4hqbuj0vt`, COGNITO + TechPass, **no required group** |
+| App client | `labs-dash` = `1clu7qnljgrmvbusf4hqbuj0vt`, COGNITO + TechPass, **no required group — any TechPass user** |
 | Edge function | `labs-dash-cognito-edge` (us-east-1), role `labs-dash-cognito-edge-role` |
 
 ## The five ranks
@@ -185,42 +185,15 @@ affordance still tells the truth; the truth just changed.
 The modal locks body scroll while open, closes on Escape or a backdrop click, focuses the close
 button on open and returns focus to the card that opened it.
 
-## Drag-and-drop re-tiering
+## Editing the roster
 
-Owner-only. **The trigger is `https://labs.ai.tech.gov.sg/#edit` — a fragment, not a query
-parameter**, and that is forced by the auth round-trip rather than preference.
+`src/data/projects.json` is the only way to change what the board shows — there is no in-page
+editing, and no `projects.json` is served (the roster is compiled into the bundle, which is what
+lets the test suite gate every change). Edit, `npx vitest run`, `bash scripts/deploy.sh`.
 
-`cognito-at-edge` builds its post-login redirect as
-`request.uri + encodeURIComponent('?' + request.querystring)` and, with CSRF disabled (how
-`labs-auth` configures it), uses that string verbatim as the OAuth `state` and then as the
-`location` on the way back. So arriving at `/?edit=1` while unauthenticated lands you on the
-literal **path** `/%3Fedit%3D1` after login: `location.search` is empty, edit mode is correctly
-off, and the path also 404s from S3 because there is no SPA fallback. A fragment is never sent to
-the server and browsers carry it across redirects, so `#edit` survives untouched.
-
-`?edit=1` still works for an already-authenticated session, where no redirect happens. There is a
-regression test for the empty-search-and-hash case.
-
-Dropping a card writes `{slug: tier}` to `labs-dash:overrides` in
-localStorage, layered over the committed file at render time. `copy projects.json` emits the full
-roster with overrides applied for pasting back into `src/data/projects.json`; committing that makes
-the change canonical and the override can be reset.
-
-**Four of the five ranks are drop targets. The Ascended is not.** Ascending means being absorbed
-into a *named* successor, and a dragged card carries no successor to name — so the rank refuses
-drops and never shows drop-target styling (`acceptsDrop` in `src/types.ts`). Its cards still render
-normally and are still draggable *out*; dragging one out strips `absorbedInto`, which is what keeps
-the exported roster passing the ascended-iff-`absorbedInto` test it gets pasted back into. To
-promote something to Ascended, edit `projects.json` by hand and supply the successor.
-
-**Per-browser by design.** An override affects only the browser that made it, which is what makes
-"for me alone" true with no server-side authorization — there is no shared write path. The owner
-check reads the `email` claim from the Cognito ID token cookie (`cognito-at-edge` sets it without
-`httpOnly`, which `labs-auth/edge-auth/group-gate.js` also relies on).
-
-> That check is a **UX affordance, not a security control** — anyone can bypass it in devtools.
-> That is acceptable precisely because overrides are local-only and cannot affect another viewer
-> or the deployed artifact. It must never be represented as authorization.
+Drag-and-drop re-tiering, the localStorage override layer, the owner check and the edit bar were
+all **removed** (2026-07-27). They existed only to serve dragging; with the file as the interface
+they were dead weight, and an edit bar with nothing behind it is worse than none.
 
 ## Gotchas
 

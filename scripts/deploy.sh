@@ -8,10 +8,6 @@ if [ -f .env ]; then set -a; . ./.env; set +a; fi
 : "${S3_BUCKET:?set S3_BUCKET in .env}"
 : "${CLOUDFRONT_DIST_ID:?set CLOUDFRONT_DIST_ID in .env}"
 
-# VITE_OWNER_EMAIL is baked in at build time. Unset means the owner check can never match,
-# so drag-and-drop re-tiering silently never appears. Fail loudly instead.
-: "${VITE_OWNER_EMAIL:?set VITE_OWNER_EMAIL in .env — edit mode is inert without it}"
-
 npm run build
 
 # index.html must not be cached hard: it is how a new build reaches an open tab. Hashed

@@ -1,37 +1,18 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { TierSection } from './components/TierSection'
-import { EditBar } from './components/EditBar'
 import { Backdrop } from './components/Backdrop'
 import { Hero } from './components/Hero'
 import { ProjectModal } from './components/ProjectModal'
-import type { CopyState } from './components/EditBar'
-import { readOverrides, writeOverride, clearOverrides, applyOverrides, exportRoster } from './overrides'
-import { isEditEnabled } from './auth'
-import { TIERS, acceptsDrop } from './types'
+import { TIERS } from './types'
 import type { Tier } from './types'
-import { roster, allProjects, omit } from './data/roster'
+import { roster } from './data/roster'
 import { cardArt } from './data/cardArt'
-import { TIERS as ALL_TIERS } from './types'
 import './styles/tokens.css'
 import './styles/app.css'
 
-const OWNER = import.meta.env.VITE_OWNER_EMAIL ?? ''
-const COPY_STATUS_TIMEOUT_MS = 2000
-
 export const App = () => {
-  const [overrides, setOverrides] = useState(() => readOverrides())
-  const [copyState, setCopyState] = useState<CopyState>('idle')
   const [activeTier, setActiveTier] = useState<Tier>('living')
   const [openSlug, setOpenSlug] = useState<string | null>(null)
-  const dragged = useRef<string | null>(null)
-  const copyTimer = useRef<number | null>(null)
-
-  const editing = useMemo(
-    () => isEditEnabled(document.cookie, window.location.search, window.location.hash, OWNER),
-    []
-  )
-
-  const resolved = useMemo(() => applyOverrides(roster, overrides), [overrides])
 
   // Art belongs to every rank that still has something to show. A living project needs a
   // host — art is for something you can go and see. The ascended, dormant and risen get art
@@ -42,26 +23,11 @@ export const App = () => {
   // without withholding it.
   const artBySlug = useMemo(
     () => Object.fromEntries(
-      resolved
+      roster
         .filter((p) => p.tier !== 'fallen' && (p.tier !== 'living' || p.host) && cardArt[p.slug])
         .map((p) => [p.slug, cardArt[p.slug]])
     ),
-    [resolved]
-  )
-
-  // Only count overrides for slugs still on the roster. A stored override for a project that
-  // has since been removed or renamed marks no card, so counting it makes the bar read
-  // "1 local change" with nothing highlighted on the board.
-  const changeCount = useMemo(
-    () => Object.keys(overrides).filter((slug) => roster.some((p) => p.slug === slug)).length,
-    [overrides]
-  )
-
-  // Mirrors Card's href rules so the modal's link target and the card's are never out of
-  // step: a fallen project links nowhere, an ascended one links to its successor.
-  const openProject = useMemo(
-    () => (openSlug ? resolved.find((p) => p.slug === openSlug) ?? null : null),
-    [openSlug, resolved]
+    []
   )
 
   const hostBySlug = useMemo(
@@ -69,10 +35,14 @@ export const App = () => {
     []
   )
 
+  const openProject = useMemo(
+    () => (openSlug ? roster.find((p) => p.slug === openSlug) ?? null : null),
+    [openSlug]
+  )
 
-  // Which rank owns the backdrop. A second observer with a narrow band around the viewport's
-  // middle means exactly one section is "current" at a time, so the backdrop crossfades as a
-  // rank scrolls through the centre rather than flickering at every section boundary.
+  // Which rank owns the backdrop. A narrow band around the viewport's middle means exactly
+  // one section is "current" at a time, so the backdrop crossfades as a rank scrolls through
+  // the centre rather than flickering at every section boundary.
   useEffect(() => {
     if (typeof IntersectionObserver === 'undefined') return
     const sections = [...document.querySelectorAll('.tier')]
@@ -81,7 +51,7 @@ export const App = () => {
       (entries) => {
         for (const e of entries) {
           if (!e.isIntersecting) continue
-          const tier = ALL_TIERS.find((t) => e.target.classList.contains(`tier--${t}`))
+          const tier = TIERS.find((t) => e.target.classList.contains(`tier--${t}`))
           if (tier) setActiveTier(tier)
         }
       },
@@ -91,9 +61,8 @@ export const App = () => {
     return () => io.disconnect()
   }, [])
 
-  // The reveal marker is an attribute, not a class. TierSection's className is
-  // React-owned and is rewritten whenever it toggles `tier--drop-target`, which
-  // would silently wipe a class added here and strand the rank at opacity 0.
+  // The reveal marker is an attribute, not a class, so that a React re-render of a section
+  // cannot wipe it and strand the rank at opacity 0.
   useEffect(() => {
     const els = document.querySelectorAll('.tier')
     const reveal = (el: Element) => el.setAttribute('data-revealed', '')
@@ -109,8 +78,8 @@ export const App = () => {
     return () => io.disconnect()
   }, [])
 
-  // Cursor-tracked ember on the hovered card. Skipped entirely for reduced
-  // motion and for coarse pointers, where there is no cursor to track.
+  // Cursor-tracked ember on the hovered card. Skipped entirely for reduced motion and for
+  // coarse pointers, where there is no cursor to track.
   useEffect(() => {
     if (typeof window.matchMedia !== 'function') return
     const skip =
@@ -125,9 +94,8 @@ export const App = () => {
     let pending: PointerEvent | null = null
     let lit: HTMLElement | null = null
 
-    // A card that keeps stale --mx/--my re-ignites at the last mouse position
-    // when it is re-entered or keyboard-focused. Clearing them restores the
-    // 50% 0% fallback in app.css.
+    // A card that keeps stale --mx/--my re-ignites at the last mouse position when it is
+    // re-entered or keyboard-focused. Clearing them restores the 50% 0% fallback in app.css.
     const douse = () => {
       if (!lit) return
       lit.style.removeProperty('--mx')
@@ -174,67 +142,21 @@ export const App = () => {
     }
   }, [])
 
-  useEffect(() => () => {
-    if (copyTimer.current) clearTimeout(copyTimer.current)
-  }, [])
-
-  const flashCopyState = (state: 'copied' | 'failed') => {
-    setCopyState(state)
-    if (copyTimer.current) clearTimeout(copyTimer.current)
-    copyTimer.current = setTimeout(() => setCopyState('idle'), COPY_STATUS_TIMEOUT_MS)
-  }
-
-  const handleDrop = (tier: Tier) => {
-    const slug = dragged.current
-    dragged.current = null
-    if (!slug || !editing || !acceptsDrop(tier)) return
-    setOverrides(writeOverride(slug, tier))
-  }
-
-  const handleCopy = () => {
-    if (!navigator.clipboard) {
-      flashCopyState('failed')
-      return
-    }
-    navigator.clipboard.writeText(exportRoster(allProjects, overrides, omit))
-      .then(() => flashCopyState('copied'))
-      .catch(() => flashCopyState('failed'))
-  }
-
-  const handleReset = () => {
-    clearOverrides()
-    setOverrides({})
-  }
-
   return (
     <>
       <Backdrop active={activeTier} />
       <Hero count={roster.length} />
       <main className="board">
-
-      {editing && (
-        <EditBar
-          changeCount={changeCount}
-          copyState={copyState}
-          onCopy={handleCopy}
-          onReset={handleReset}
-        />
-      )}
-
-      {TIERS.map((tier) => (
-        <TierSection
-          key={tier}
-          tier={tier}
-          projects={resolved.filter((p) => p.tier === tier)}
-          hostBySlug={hostBySlug}
-          artBySlug={artBySlug}
-          editing={editing}
-          overrides={overrides}
-          onDragStart={(slug) => { dragged.current = slug }}
-          onOpen={setOpenSlug}
-          onDrop={handleDrop}
-        />
-      ))}
+        {TIERS.map((tier) => (
+          <TierSection
+            key={tier}
+            tier={tier}
+            projects={roster.filter((p) => p.tier === tier)}
+            hostBySlug={hostBySlug}
+            artBySlug={artBySlug}
+            onOpen={setOpenSlug}
+          />
+        ))}
       </main>
       {openProject && (
         <ProjectModal

@@ -60,9 +60,7 @@ then `bash scripts/deploy.sh`.
 3. `host` is a full origin, not derived from the slug — `depot` and `deskboard` live off the labs
    zone.
 4. `absorbedInto` is required exactly when `tier` is `ascended`, and any `absorbedInto.slug` must
-   resolve to another roster entry. Both are tested. Because a drag cannot supply a successor,
-   **The Ascended is the one rank that is not a drop target** (`acceptsDrop` in `src/types.ts`) —
-   promoting something to it is a hand edit. Dragging a card *out* of it strips `absorbedInto`.
+   resolve to another roster entry. Both are tested.
 5. Run `npx vitest run` — the data tests catch length, duplicate slugs, bad tiers, unparseable
    hosts, omit entries matching no project, and fallen entries carrying live links.
 
@@ -89,9 +87,7 @@ npx vitest run && npx tsc --noEmit    # both must be clean
 bash scripts/deploy.sh                # build → s3 sync → invalidate
 ```
 
-`scripts/deploy.sh` reads `.env` (gitignored; see `.env.sample`). It **fails loudly if
-`VITE_OWNER_EMAIL` is unset** — without it the owner check can never match and drag-and-drop
-silently never appears.
+`scripts/deploy.sh` reads `.env` (gitignored; see `.env.sample`).
 
 `index.html` is uploaded with `max-age=0,must-revalidate` while hashed assets get a year — that is
 how a new build reaches an already-open tab. Keep that split.
@@ -135,7 +131,16 @@ so an existing session keeps its old group-less token and gets a 403 until it is
 
 ## Restricting access to a Cognito group
 
-Currently open to any TechPass user who can sign in. To restrict, no code change is needed:
+**Currently open to any TechPass user who can sign in** (`requiredGroup` cleared 2026-07-27). The
+`labs-dash-users` group still exists with its members, so re-enabling admits them immediately:
+
+```bash
+bash infra/group-gate.sh status   # config vs what is actually deployed
+bash infra/group-gate.sh on       # restrict to labs-dash-users
+bash infra/group-gate.sh off      # open to any TechPass user
+```
+
+To restrict by hand instead, no code change is needed:
 
 1. Set `appClients.dash.requiredGroup` in `labs-auth/outputs.json`.
 2. `cd labs-auth/edge-auth && bash build.sh dash` (the group name is baked in as
@@ -145,22 +150,14 @@ Currently open to any TechPass user who can sign in. To restrict, no code change
 Note that `cognito:groups` is baked into the ID token when issued, so a user added to the group
 while already signed in keeps their old token and gets a 403 until a clean re-login.
 
-## Edit mode
-
-Open `https://labs.ai.tech.gov.sg/#edit`. **Use the fragment, not `?edit=1`.** A query string does
-not survive the login redirect — `cognito-at-edge` percent-encodes it into the redirect *path*, so
-a fresh login from `/?edit=1` lands on `/%3Fedit%3D1` with an empty `location.search` and no edit
-mode (and a 404). See ABOUT.md for the mechanism. `?edit=1` works only when you are already
-authenticated.
 
 ## Don't
 
-- Don't treat the client-side owner check as authorization. It gates a localStorage-only affordance.
+
 - Don't move the `data-revealed` reveal marker back to a `className` — React rewriting the class
   attribute erases it and leaves whole tiers permanently invisible. There is a guard test.
 - Don't claim link previews work. `index.html` carries OG and Twitter Card tags per house
   convention, but the site is IP-fenced and auth-gated so no unfurler can ever fetch them.
-- Don't move the edit trigger back to a query-parameter-only check. The auth redirect destroys
-  query strings; there is a regression test pinning the empty-search-and-hash case.
-- Don't add a backend to make overrides shared. That was considered and rejected; it needs a real
-  authorization story, not a widened client-side check.
+- Don't reintroduce in-page re-tiering. Drag-and-drop, the localStorage override layer and the
+  owner check were all removed on 2026-07-27; the JSON file is the interface, and it is compiled
+  in so the tests gate every change.
