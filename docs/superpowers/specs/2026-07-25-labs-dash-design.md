@@ -1,5 +1,12 @@
 # labs-dash — design
 
+> **HISTORICAL — superseded in places. `ABOUT.md` is the current description of the system.**
+> This records the design as it was decided on 2026-07-25 and is kept for the reasoning, not as a
+> statement of how the site works now. Most notably it specifies drag-and-drop re-tiering with a
+> localStorage override layer and an owner check; all of that was **removed on 2026-07-27** once
+> the JSON file became the editing interface. Other details (art eligibility, the access posture,
+> the card's click targets) have also moved on.
+
 **Date:** 2026-07-25
 **Status:** approved, pre-implementation
 

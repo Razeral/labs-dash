@@ -8,6 +8,21 @@ Live in AWS account **323001028968** (`ap-southeast-1`). Design spec:
 `docs/superpowers/specs/2026-07-25-labs-dash-design.md`. Build plan:
 `docs/superpowers/plans/2026-07-25-labs-dash.md`.
 
+## State at last checkpoint — 2026-07-27
+
+| | |
+|---|---|
+| Live | `https://labs.ai.tech.gov.sg` — alias on `EFEV1TL1LF6Y3`, verified |
+| Access | WAF corp IP fence **+** TechPass. **No group gate** — any TechPass user who can sign in |
+| Edge gate | `labs-dash-cognito-edge:4`, `REQUIRED_GROUP = ''` |
+| Certificate | `f053a5a8…` — **expires 2026-12-12** |
+| Roster | 46 entries, 6 omitted, **40 rendered** (Living 17 · Ascended 10 · Dormant 4 · Risen 1 · Fallen 9 at time of writing) |
+| Art | 21 card images, 5 tier backdrops, 1 hero door |
+| Tests | 57 passing, `tsc --noEmit` clean |
+
+Re-check these before trusting the rest of this file: `bash infra/group-gate.sh status` and
+`jq '{omit:(.omit|length), projects:(.projects|length)}' src/data/projects.json`.
+
 ## Architecture
 
 Static Vite + React + TS single page. No backend, no API, no runtime data fetching.
@@ -24,8 +39,9 @@ CloudFront  EFEV1TL1LF6Y3  (labs.ai.tech.gov.sg)
   └─ Origin (OAC E1T0B05MNI9XDW) ──▶ s3://labs-dash-site  (private, PAB on)
 ```
 
-Render pipeline: `src/data/projects.json` (committed seed) → localStorage overrides layered on
-top → grouped by tier → rendered. One direction.
+Render pipeline: `src/data/projects.json` → filtered by `omit` → grouped by tier → rendered.
+One direction, no runtime state. The roster is **compiled into the bundle**, not fetched: that is
+what lets the test suite gate every change to it.
 
 | Resource | Value |
 |---|---|
@@ -211,9 +227,10 @@ they were dead weight, and an edit bar with nothing behind it is worse than none
   viewer-request; `labs-playtester-cognito-edge` runs at the same size. Depot's 103 KB esbuild
   bundle is leaner if this ever needs shrinking.
 - **`.tier` starts at `opacity: 0`** and is revealed by an IntersectionObserver via a
-  `data-revealed` attribute. It is an **attribute, not a class**, because React rewriting
-  `className` erased an imperatively-added class and left sections permanently invisible after one
-  drag. There is a guard test; do not move it back to a class.
+  `data-revealed` attribute. It is an **attribute, not a class**: React rewriting `className` on
+  a re-render erased an imperatively-added class, and because the observer never re-fires for an
+  element already intersecting, the rank stayed at `opacity: 0` permanently — a blank section
+  with every test passing. There is a guard test. Do not move it back to a class.
 - **`provision-edge.sh` did not exist** before this project, despite `labs-auth`'s README
   referencing it in four places. It now lives in `labs-auth/` and does both halves — publish a
   version *and* repoint the distribution.
