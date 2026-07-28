@@ -54,6 +54,9 @@ npm run roster:deploy     # the same, then tests + typecheck + deploy
 npm run dev               # live preview, hot-reloads as you save the JSON
 ```
 
+Runnable from anywhere with `npm --prefix projects/labs-dash run roster`, or from the fleet dash
+(`s` menu): `labs-dash-roster`, `labs-dash-roster-deploy`, `labs-dash-deploy`.
+
 `npm run roster` reports the **board**, not the diff: which projects changed rank, what went on
 or off, and what the ranks add up to afterwards with the previous rendered count for comparison.
 It also catches things nothing else does — an `omit` entry matching no project (which otherwise

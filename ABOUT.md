@@ -8,17 +8,18 @@ Live in AWS account **323001028968** (`ap-southeast-1`). Design spec:
 `docs/superpowers/specs/2026-07-25-labs-dash-design.md`. Build plan:
 `docs/superpowers/plans/2026-07-25-labs-dash.md`.
 
-## State at last checkpoint — 2026-07-27
+## State at last checkpoint — 2026-07-28
 
 | | |
 |---|---|
-| Live | `https://labs.ai.tech.gov.sg` — alias on `EFEV1TL1LF6Y3`, verified |
+| Live | `https://labs.ai.tech.gov.sg` — alias on `EFEV1TL1LF6Y3`, status `Deployed`, WAF `labs-dash-cf-waf` attached |
 | Access | WAF corp IP fence **+** TechPass. **No group gate** — any TechPass user who can sign in |
 | Edge gate | `labs-dash-cognito-edge:4`, `REQUIRED_GROUP = ''` |
 | Certificate | `f053a5a8…` — **expires 2026-12-12** |
 | Roster | 46 entries, 7 omitted, **39 rendered** (Living 16 · Ascended 10 · Dormant 3 · Risen 1 · Fallen 9 at time of writing) — check with `npm run roster` |
 | Art | 21 card images, 5 tier backdrops, 1 hero door |
 | Tests | 57 passing, `tsc --noEmit` clean |
+| Verified | apex and `/share.png` both `302` (no asset bypass); live bundle matches the local build |
 
 Re-check these before trusting the rest of this file: `bash infra/group-gate.sh status` and
 `npm run roster`.
