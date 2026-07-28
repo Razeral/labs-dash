@@ -5,7 +5,8 @@
     "fueler",
     "ltm-src",
     "tripper",
-    "writer"
+    "writer",
+    "giantrobotslabs"
   ],
   "projects": [
     { "name": "AIAP FinOps", "tier": "ascended", "slug": "aiap-finops",

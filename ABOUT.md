@@ -16,12 +16,12 @@ Live in AWS account **323001028968** (`ap-southeast-1`). Design spec:
 | Access | WAF corp IP fence **+** TechPass. **No group gate** — any TechPass user who can sign in |
 | Edge gate | `labs-dash-cognito-edge:4`, `REQUIRED_GROUP = ''` |
 | Certificate | `f053a5a8…` — **expires 2026-12-12** |
-| Roster | 46 entries, 6 omitted, **40 rendered** (Living 17 · Ascended 10 · Dormant 4 · Risen 1 · Fallen 9 at time of writing) |
+| Roster | 46 entries, 7 omitted, **39 rendered** (Living 16 · Ascended 10 · Dormant 3 · Risen 1 · Fallen 9 at time of writing) — check with `npm run roster` |
 | Art | 21 card images, 5 tier backdrops, 1 hero door |
 | Tests | 57 passing, `tsc --noEmit` clean |
 
 Re-check these before trusting the rest of this file: `bash infra/group-gate.sh status` and
-`jq '{omit:(.omit|length), projects:(.projects|length)}' src/data/projects.json`.
+`npm run roster`.
 
 ## Architecture
 
@@ -205,7 +205,15 @@ button on open and returns focus to the card that opened it.
 
 `src/data/projects.json` is the only way to change what the board shows — there is no in-page
 editing, and no `projects.json` is served (the roster is compiled into the bundle, which is what
-lets the test suite gate every change). Edit, `npx vitest run`, `bash scripts/deploy.sh`.
+lets the test suite gate every change).
+
+**`npm run roster`** is the way to see what an edit did: it reports the board rather than the
+diff — which projects changed rank, what went on or off, the resulting counts against the
+previous ones — and catches what nothing else does: an `omit` entry matching no project (silent
+otherwise), a `fallen` entry carrying a host, and art files bundled but unused because their
+project was omitted. It exits non-zero on any problem, and `npm run roster:deploy` runs the
+report first, so a broken roster cannot reach the deploy step. `npm run dev` hot-reloads on save
+for a live preview.
 
 Drag-and-drop re-tiering, the localStorage override layer, the owner check and the edit bar were
 all **removed** (2026-07-27). They existed only to serve dragging; with the file as the interface

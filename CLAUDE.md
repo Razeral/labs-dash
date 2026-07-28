@@ -46,9 +46,22 @@ cost time. This file is only how to act in it.
 `projects` is sorted by tier then name so the file reads top-to-bottom as the tier list itself.
 Nothing depends on that order — the app groups by `tier` — so a re-sort is cosmetic.
 
-Then: `npx vitest run` (the data tests catch a bad tier, a duplicate slug, an over-long blurb, an
-unparseable host, an omit entry that matches no project, and a fallen entry with a live link),
-then `bash scripts/deploy.sh`.
+### Seeing what your edit did
+
+```bash
+npm run roster            # what changed, the new board, problems — nothing is deployed
+npm run roster:deploy     # the same, then tests + typecheck + deploy
+npm run dev               # live preview, hot-reloads as you save the JSON
+```
+
+`npm run roster` reports the **board**, not the diff: which projects changed rank, what went on
+or off, and what the ranks add up to afterwards with the previous rendered count for comparison.
+It also catches things nothing else does — an `omit` entry matching no project (which otherwise
+fails silently), a `fallen` entry carrying a host, and **art files that are bundled but unused**
+because their project was omitted or moved to a rank that shows none.
+
+It exits non-zero on any problem, and `roster:deploy` runs the report first, so a broken roster
+cannot reach the deploy step. Invalid JSON stops it immediately with the parse error.
 
 ## Adding or changing a project card
 
