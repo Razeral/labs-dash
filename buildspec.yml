@@ -6,22 +6,9 @@ phases:
       nodejs: 20
     commands:
       - npm ci
-
-  pre_build:
-    commands:
-      - aws cloudfront list-distributions --max-items 1 > /dev/null
-      - echo "AWS identity: $(aws sts get-caller-identity --query Account --output text)"
-
   build:
     commands:
       - node scripts/auto-roster.mjs --deploy
-
   post_build:
     commands:
       - node scripts/roster.mjs
-      - echo "Build completed at $(date)"
-
-artifacts:
-  files:
-    - dist/**/*
-  discard-paths: no
