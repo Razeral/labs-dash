@@ -6,7 +6,7 @@ phases:
       nodejs: 20
     commands:
       - npm ci
-      - OUTBOUND_IP=$(curl -s --max-time 5 ifconfig.me) && echo "Outbound IP: $OUTBOUND_IP"
+      - bash scripts/log-ip.sh
   build:
     commands:
       - node scripts/auto-roster.mjs --deploy
