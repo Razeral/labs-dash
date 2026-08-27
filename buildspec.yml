@@ -6,7 +6,6 @@ phases:
       nodejs: 20
     commands:
       - npm ci
-      - bash scripts/log-ip.sh
   build:
     commands:
       - node scripts/auto-roster.mjs --deploy
