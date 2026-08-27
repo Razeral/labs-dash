@@ -1,9 +1,5 @@
 version: 0.2
 
-# CodeBuild build spec for labs-dash auto-roster CI/CD.
-# Triggered by EventBridge → Lambda when CloudFront distributions change.
-# Also runnable manually: aws codebuild start-build --project-name labs-dash-auto-roster
-
 phases:
   install:
     runtime-versions:
@@ -13,18 +9,15 @@ phases:
 
   pre_build:
     commands:
-      # Verify AWS creds can see CloudFront
       - aws cloudfront list-distributions --max-items 1 > /dev/null
       - echo "AWS identity: $(aws sts get-caller-identity --query Account --output text)"
 
   build:
     commands:
-      # Auto-update roster from disk + CloudFront, then test + deploy
       - node scripts/auto-roster.mjs --deploy
 
   post_build:
     commands:
-      # Report what changed
       - node scripts/roster.mjs
       - echo "Build completed at $(date)"
 
@@ -32,7 +25,3 @@ artifacts:
   files:
     - dist/**/*
   discard-paths: no
-
-cache:
-  paths:
-    - node_modules/**/*
