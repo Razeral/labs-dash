@@ -1,233 +1,442 @@
 {
   "omit": [
+    "armory",
     "bootstrap-mcp",
     "candidate-code-review",
     "fueler",
+    "giantrobotslabs",
     "ltm-src",
+    "m365-stg",
+    "oauth-prd",
+    "slack-prd",
+    "slack-stg",
     "tripper",
-    "writer",
-    "giantrobotslabs"
+    "writer"
   ],
   "projects": [
-    { "name": "AiHeard", "tier": "living", "slug": "aiheard",
+    {
+      "name": "AiHeard",
+      "tier": "living",
+      "slug": "aiheard",
       "blurb": "A colleague who cannot keep a secret. Sign in with TechPass to read this one.",
       "host": "https://aiheard.labs.ai.tech.gov.sg"
     },
-    { "name": "armory", "tier": "living", "slug": "armory",
+    {
+      "name": "armory",
+      "tier": "living",
+      "slug": "armory",
       "blurb": "Armory is a personal project (personal machine, local-first) for producing **game-ready 3D assets..."
     },
-    { "name": "Bootstrap MCP", "tier": "living", "slug": "bootstrap-mcp",
+    {
+      "name": "Bootstrap MCP",
+      "tier": "living",
+      "slug": "bootstrap-mcp",
       "blurb": "Bootstrap scaffolding for MCP servers"
     },
-    { "name": "Candidate Code Review", "tier": "living", "slug": "candidate-code-review",
+    {
+      "name": "Candidate Code Review",
+      "tier": "living",
+      "slug": "candidate-code-review",
       "blurb": "Code-review exercise harness for candidates"
     },
-    { "name": "Continuum", "tier": "living", "slug": "continuum",
+    {
+      "name": "Continuum",
+      "tier": "living",
+      "slug": "continuum",
       "blurb": "Vibing platform for existing repos. Click \"Continue building\", ship via MR",
       "host": "https://continuum.labs.ai.tech.gov.sg"
     },
-    { "name": "desk-agui", "tier": "living", "slug": "desk-agui",
+    {
+      "name": "desk-agui",
+      "tier": "living",
+      "slug": "desk-agui",
       "blurb": "`desk` is a terminal client for the Desk agent (an internal AG-UI-based chat agent,"
     },
-    { "name": "Ducks", "tier": "living", "slug": "ducks",
+    {
+      "name": "Ducks",
+      "tier": "living",
+      "slug": "ducks",
       "blurb": "Static slide-deck catalog. Two deploy paths — the site and the Lambda ship apart",
       "host": "https://ducks.ai.tech.gov.sg"
     },
-    { "name": "Emotype", "tier": "living", "slug": "emotype",
+    {
+      "name": "Emotype",
+      "tier": "living",
+      "slug": "emotype",
       "blurb": "What your most-used Slack emoji say about you. Sign in with TechPass.",
       "host": "https://emotype.labs.ai.tech.gov.sg"
     },
-    { "name": "Fleet", "tier": "living", "slug": "fleet",
+    {
+      "name": "Fleet",
+      "tier": "living",
+      "slug": "fleet",
       "blurb": "Cockpit for launching and tracking Claude sessions across projects"
     },
-    { "name": "Fueler", "tier": "living", "slug": "fueler",
+    {
+      "name": "Fueler",
+      "tier": "living",
+      "slug": "fueler",
       "blurb": "Telegram bot that OCRs fuel-receipt photos and appends rows to a Google Sheet"
     },
-    { "name": "GovBrain", "tier": "living", "slug": "govbrain",
+    {
+      "name": "GovBrain",
+      "tier": "living",
+      "slug": "govbrain",
       "blurb": "Control plane over the ltm engine — provisions and governs isolated memory brains",
       "host": "https://govbrain.labs.ai.tech.gov.sg"
     },
-    { "name": "Guidemaker", "tier": "living", "slug": "guidemaker",
+    {
+      "name": "Guidemaker",
+      "tier": "living",
+      "slug": "guidemaker",
       "blurb": "Records narrated product guides — multi-segment capture, auth modes, polish pass"
     },
-    { "name": "Halley", "tier": "living", "slug": "halley",
+    {
+      "name": "Halley",
+      "tier": "living",
+      "slug": "halley",
       "blurb": "A personal new-tab page with AI widgets and real scheduling.",
       "host": "https://halley.labs.ai.tech.gov.sg"
     },
-    { "name": "Imagine", "tier": "living", "slug": "imagine",
+    {
+      "name": "Imagine",
+      "tier": "living",
+      "slug": "imagine",
       "blurb": "Generate images with gpt-image-2 via the AIP LiteLLM proxy. Style presets, enhance"
     },
-    { "name": "Labs Auth", "tier": "living", "slug": "labs-auth",
+    {
+      "name": "Labs Auth",
+      "tier": "living",
+      "slug": "labs-auth",
       "blurb": "The shared Cognito pool and edge gate every labs app authenticates against"
     },
-    { "name": "Limn", "tier": "living", "slug": "limn",
+    {
+      "name": "Limn",
+      "tier": "living",
+      "slug": "limn",
       "blurb": "No description recorded.",
       "note": "No ABOUT.md or README present."
     },
-    { "name": "LTM Source", "tier": "living", "slug": "ltm-src",
+    {
+      "name": "LTM Source",
+      "tier": "living",
+      "slug": "ltm-src",
       "blurb": "Long-term memory MCP server for AgentCore Runtime. Consumed by govbrain as-is"
     },
-    { "name": "m365-stg", "tier": "living", "slug": "m365-stg",
+    {
+      "name": "m365-stg",
+      "tier": "living",
+      "slug": "m365-stg",
       "blurb": "To developer who using this BYOMCP repo to build your MCP"
     },
-    { "name": "oauth-prd", "tier": "living", "slug": "oauth-prd",
+    {
+      "name": "oauth-prd",
+      "tier": "living",
+      "slug": "oauth-prd",
       "blurb": "To developer who using this BYOMCP repo to build your MCP"
     },
-    { "name": "Playtester", "tier": "living", "slug": "playtester",
+    {
+      "name": "Playtester",
+      "tier": "living",
+      "slug": "playtester",
       "blurb": "Playwright regression and adversarial safety suites for desk",
       "host": "https://playtester.labs.ai.tech.gov.sg"
     },
-    { "name": "slack-prd", "tier": "living", "slug": "slack-prd",
+    {
+      "name": "slack-prd",
+      "tier": "living",
+      "slug": "slack-prd",
       "blurb": "> [!IMPORTANT]"
     },
-    { "name": "slack-stg", "tier": "living", "slug": "slack-stg",
+    {
+      "name": "slack-stg",
+      "tier": "living",
+      "slug": "slack-stg",
       "blurb": "To developer who using this BYOMCP repo to build your MCP"
     },
-    { "name": "snowcloak", "tier": "living", "slug": "snowcloak",
-      "blurb": "**Depot is a sovereign, curated model registry — a \"gov fork of HuggingFace.\"** It pulls a vetted..."
+    {
+      "name": "Snowcloak",
+      "tier": "living",
+      "slug": "snowcloak",
+      "blurb": "Model proxy gateway — routes LLM requests through a governed registry"
     },
-    { "name": "Tendrils", "tier": "living", "slug": "tendrils",
+    {
+      "name": "Tendrils",
+      "tier": "living",
+      "slug": "tendrils",
       "blurb": "Dynamic agent-skill management with human approval and git-like versioning"
     },
-    { "name": "Tentacles", "tier": "living", "slug": "tentacles",
+    {
+      "name": "Tentacles",
+      "tier": "living",
+      "slug": "tentacles",
       "blurb": "Telegram bridge into the Terra arbiter"
     },
-    { "name": "Terra", "tier": "living", "slug": "terra",
+    {
+      "name": "Terra",
+      "tier": "living",
+      "slug": "terra",
       "blurb": "The multi-agent orchestrator this all runs on"
     },
-    { "name": "Tripper", "tier": "living", "slug": "tripper",
+    {
+      "name": "Tripper",
+      "tier": "living",
+      "slug": "tripper",
       "blurb": "Self-hosted trip planner"
     },
-    { "name": "Vendor", "tier": "living", "slug": "vendor",
+    {
+      "name": "Vendor",
+      "tier": "living",
+      "slug": "vendor",
       "blurb": "Interview candidate LLM key vending",
       "host": "https://vend.ai.tech.gov.sg"
     },
-    { "name": "Wish", "tier": "living", "slug": "wish",
+    {
+      "name": "Wish",
+      "tier": "living",
+      "slug": "wish",
       "blurb": "A board for problems worth someone's time.",
       "host": "https://wish.labs.ai.tech.gov.sg"
     },
-    { "name": "Writer", "tier": "living", "slug": "writer",
+    {
+      "name": "Writer",
+      "tier": "living",
+      "slug": "writer",
       "blurb": "Thin control plane for a technical blog — persona, voice linter, corpus index"
     },
-    { "name": "AIAP FinOps", "tier": "ascended", "slug": "aiap-finops",
+    {
+      "name": "AIAP FinOps",
+      "tier": "ascended",
+      "slug": "aiap-finops",
       "blurb": "AWS cost attribution and tagging-gap audit for the AIAP account",
       "host": "https://finops.ai.tech.gov.sg",
-      "absorbedInto": {"name":"FinOps Dashboard"}
+      "absorbedInto": {
+        "name": "FinOps Dashboard"
+      }
     },
-    { "name": "Compliance API Dashboard", "tier": "ascended", "slug": "compliance-api-dashboard",
+    {
+      "name": "Compliance API Dashboard",
+      "tier": "ascended",
+      "slug": "compliance-api-dashboard",
       "blurb": "Dashboard over the ChatGPT Enterprise Compliance API — inventory, logs, run traces",
-      "absorbedInto": {"name":"Aperture"}
+      "absorbedInto": {
+        "name": "Aperture"
+      }
     },
-    { "name": "Devenv Gateway", "tier": "ascended", "slug": "devenv-gateway",
+    {
+      "name": "Devenv Gateway",
+      "tier": "ascended",
+      "slug": "devenv-gateway",
       "blurb": "Containerized dev-environment gateway wrapping Claude Code CLI, tmux, files, git in one API",
-      "absorbedInto": {"name":"Continuum","slug":"continuum"}
+      "absorbedInto": {
+        "name": "Continuum",
+        "slug": "continuum"
+      }
     },
-    { "name": "Editor", "tier": "ascended", "slug": "editor",
+    {
+      "name": "Editor",
+      "tier": "ascended",
+      "slug": "editor",
       "blurb": "Multi-tenant GitLab repo editor and AgentCore agent tester",
       "host": "https://harness.ai.tech.gov.sg",
-      "absorbedInto": {"name":"Harness"}
+      "absorbedInto": {
+        "name": "Harness"
+      }
     },
-    { "name": "Google Workspace", "tier": "ascended", "slug": "google-workspace",
+    {
+      "name": "Google Workspace",
+      "tier": "ascended",
+      "slug": "google-workspace",
       "blurb": "AgentCore deployment fork of the slack-prototypes MCP tools",
-      "absorbedInto": {"name":"MCP Gateway"}
+      "absorbedInto": {
+        "name": "MCP Gateway"
+      }
     },
-    { "name": "Google Workspace PRD", "tier": "ascended", "slug": "google-workspace-prd",
+    {
+      "name": "Google Workspace PRD",
+      "tier": "ascended",
+      "slug": "google-workspace-prd",
       "blurb": "Production variant of the google-workspace deployment",
-      "absorbedInto": {"name":"MCP Gateway"}
+      "absorbedInto": {
+        "name": "MCP Gateway"
+      }
     },
-    { "name": "Harness Site", "tier": "ascended", "slug": "harness-site",
+    {
+      "name": "Harness Site",
+      "tier": "ascended",
+      "slug": "harness-site",
       "blurb": "The harness site",
       "host": "https://harness.ai.tech.gov.sg",
-      "absorbedInto": {"name":"Harness"}
+      "absorbedInto": {
+        "name": "Harness"
+      }
     },
-    { "name": "MCPScan", "tier": "ascended", "slug": "mcpscan",
+    {
+      "name": "MCPScan",
+      "tier": "ascended",
+      "slug": "mcpscan",
       "blurb": "Scan-on-add gate and drift check that rejects malicious MCP servers",
-      "absorbedInto": {"name":"MCP gateway"}
+      "absorbedInto": {
+        "name": "MCP gateway"
+      }
     },
-    { "name": "Offside", "tier": "ascended", "slug": "offside",
+    {
+      "name": "Offside",
+      "tier": "ascended",
+      "slug": "offside",
       "blurb": "Dependency-free stateful guardrail. Catches multi-turn exploits a per-turn scan can't",
-      "absorbedInto": {"name":"Aperture"}
+      "absorbedInto": {
+        "name": "Aperture"
+      }
     },
-    { "name": "Slack Prototypes", "tier": "ascended", "slug": "slack-prototypes",
+    {
+      "name": "Slack Prototypes",
+      "tier": "ascended",
+      "slug": "slack-prototypes",
       "blurb": "Slack tool prototypes. Upstream of the google-workspace deployment fork",
-      "absorbedInto": {"name":"MCP Gateway"}
+      "absorbedInto": {
+        "name": "MCP Gateway"
+      }
     },
-    { "name": "compliance-api", "tier": "dormant", "slug": "compliance-api",
+    {
+      "name": "compliance-api",
+      "tier": "dormant",
+      "slug": "compliance-api",
       "blurb": "No description recorded.",
       "host": "https://compliance-api.labs.ai.tech.gov.sg"
     },
-    { "name": "desk-buddy", "tier": "dormant", "slug": "desk-buddy",
+    {
+      "name": "desk-buddy",
+      "tier": "dormant",
+      "slug": "desk-buddy",
       "blurb": "No description recorded.",
       "host": "https://desk-buddy.labs.ai.tech.gov.sg"
     },
-    { "name": "deskboard", "tier": "dormant", "slug": "deskboard",
+    {
+      "name": "deskboard",
+      "tier": "dormant",
+      "slug": "deskboard",
       "blurb": "No description recorded.",
       "host": "https://deskboard.ai.tech.gov.sg"
     },
-    { "name": "Giant Robots Labs", "tier": "dormant", "slug": "giantrobotslabs",
+    {
+      "name": "Giant Robots Labs",
+      "tier": "dormant",
+      "slug": "giantrobotslabs",
       "blurb": "The Giant Robots Labs public site",
       "host": "https://giantrobots.tech.gov.sg"
     },
-    { "name": "GovTech Harness", "tier": "dormant", "slug": "harness",
+    {
+      "name": "GovTech Harness",
+      "tier": "dormant",
+      "slug": "harness",
       "blurb": "Everything your agent needs to operate in government — pick what fits, from discovery to deployme...",
       "host": "https://harness.ai.tech.gov.sg"
     },
-    { "name": "ManyDevs", "tier": "dormant", "slug": "manydevs",
+    {
+      "name": "ManyDevs",
+      "tier": "dormant",
+      "slug": "manydevs",
       "blurb": "Multi-tenant platform giving each engineer an isolated dev environment and agent",
       "host": "https://manydevs.ai.tech.gov.sg"
     },
-    { "name": "Mech Hangar", "tier": "dormant", "slug": "mech-hangar",
+    {
+      "name": "Mech Hangar",
+      "tier": "dormant",
+      "slug": "mech-hangar",
       "blurb": "A 3D hangar where every Giant Robots Labs project is a procedurally generated mech",
       "host": "https://stg.agents.ai.tech.gov.sg/frontend/hangar/"
     },
-    { "name": "MiniMe", "tier": "dormant", "slug": "minime",
+    {
+      "name": "MiniMe",
+      "tier": "dormant",
+      "slug": "minime",
       "blurb": "Personal agentic task board — the owner's agent triages, solves, or delegates each request",
       "host": "https://minime.labs.ai.tech.gov.sg"
     },
-    { "name": "Analytics", "tier": "risen", "slug": "analytics",
+    {
+      "name": "Analytics",
+      "tier": "risen",
+      "slug": "analytics",
       "blurb": "AIAP internal analytics dashboard. Live, unclaimed, no repo in Terra.",
       "host": "https://analytics.labs.ai.tech.gov.sg",
       "note": "No matching repo in projects/. Untouched since 2026-06-10."
     },
-    { "name": "Ask Laojiao", "tier": "fallen", "slug": "how-can",
+    {
+      "name": "Ask Laojiao",
+      "tier": "fallen",
+      "slug": "how-can",
       "blurb": "System composer for solving problem statements with existing GT products.",
       "note": "README is untouched GitLab scaffold boilerplate."
     },
-    { "name": "AssistantAI Landing", "tier": "fallen", "slug": "assistantai-landing",
+    {
+      "name": "AssistantAI Landing",
+      "tier": "fallen",
+      "slug": "assistantai-landing",
       "blurb": "Landing page for AssistantAI"
     },
-    { "name": "Build for Build", "tier": "fallen", "slug": "build-for-build",
+    {
+      "name": "Build for Build",
+      "tier": "fallen",
+      "slug": "build-for-build",
       "blurb": "Auto-solver for {build} problems.",
       "note": "No ABOUT.md or README present."
     },
-    { "name": "Build Solver", "tier": "fallen", "slug": "build-solver",
+    {
+      "name": "Build Solver",
+      "tier": "fallen",
+      "slug": "build-solver",
       "blurb": "Auto-solver for {build} problems.",
       "note": "No ABOUT.md or README present."
     },
-    { "name": "Depot", "tier": "fallen", "slug": "depot",
+    {
+      "name": "Depot",
+      "tier": "fallen",
+      "slug": "depot",
       "blurb": "Sovereign curated model registry. A gov fork of HuggingFace, signed end to end"
     },
-    { "name": "Editor Frontpage", "tier": "fallen", "slug": "editor-frontpage",
+    {
+      "name": "Editor Frontpage",
+      "tier": "fallen",
+      "slug": "editor-frontpage",
       "blurb": "Editor Frontpage"
     },
-    { "name": "Fleet3D", "tier": "fallen", "slug": "fleet3d",
+    {
+      "name": "Fleet3D",
+      "tier": "fallen",
+      "slug": "fleet3d",
       "blurb": "Three-dimensional view of the fleet"
     },
-    { "name": "ProMarket", "tier": "fallen", "slug": "promarket",
+    {
+      "name": "ProMarket",
+      "tier": "fallen",
+      "slug": "promarket",
       "blurb": "Satirical play-money prediction market for workplace promotions"
     },
-    { "name": "Sandbox", "tier": "fallen", "slug": "sandbox",
+    {
+      "name": "Sandbox",
+      "tier": "fallen",
+      "slug": "sandbox",
       "blurb": "Scratch space. Nothing here is load-bearing"
     },
-    { "name": "Terra Dashboard", "tier": "fallen", "slug": "terra-dashboard",
+    {
+      "name": "Terra Dashboard",
+      "tier": "fallen",
+      "slug": "terra-dashboard",
       "blurb": "No description recorded.",
       "note": "Cold since 2026-04-08; function now lives in terra/scripts."
     },
-    { "name": "VOX", "tier": "fallen", "slug": "VOX",
+    {
+      "name": "VOX",
+      "tier": "fallen",
+      "slug": "VOX",
       "blurb": "Providing voice cloned responses for agents",
       "note": "README describes the vendored external OpenBMB VoxCPM2 TTS repo, not an internal build."
     },
-    { "name": "Wowdocs", "tier": "fallen", "slug": "doc-generator",
+    {
+      "name": "Wowdocs",
+      "tier": "fallen",
+      "slug": "doc-generator",
       "blurb": "Auto-generated Docusaurus docs for internal repos, published behind one landing page"
     }
   ]

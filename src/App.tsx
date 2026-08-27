@@ -4,8 +4,8 @@ import { Backdrop } from './components/Backdrop'
 import { Hero } from './components/Hero'
 import { ProjectModal } from './components/ProjectModal'
 import { TIERS } from './types'
-import type { Tier } from './types'
-import { roster } from './data/roster'
+import type { Tier, Project } from './types'
+import { roster as baseRoster, loadLiveRoster } from './data/roster'
 import { cardArt } from './data/cardArt'
 import './styles/tokens.css'
 import './styles/app.css'
@@ -13,6 +13,12 @@ import './styles/app.css'
 export const App = () => {
   const [activeTier, setActiveTier] = useState<Tier>('living')
   const [openSlug, setOpenSlug] = useState<string | null>(null)
+  const [projects, setProjects] = useState<Project[]>(baseRoster)
+
+  // Load live overlay from S3 config.json (omit/tier/name/blurb overrides)
+  useEffect(() => {
+    loadLiveRoster().then(setProjects).catch(() => { /* use base roster */ })
+  }, [])
 
   // Art belongs to every rank that still has something to show. A living project needs a
   // host — art is for something you can go and see. The ascended, dormant and risen get art
@@ -23,21 +29,21 @@ export const App = () => {
   // without withholding it.
   const artBySlug = useMemo(
     () => Object.fromEntries(
-      roster
+      projects
         .filter((p) => p.tier !== 'fallen' && (p.tier !== 'living' || p.host) && cardArt[p.slug])
         .map((p) => [p.slug, cardArt[p.slug]])
     ),
-    []
+    [projects]
   )
 
   const hostBySlug = useMemo(
-    () => Object.fromEntries(roster.filter((p) => p.host).map((p) => [p.slug, p.host as string])),
-    []
+    () => Object.fromEntries(projects.filter((p) => p.host).map((p) => [p.slug, p.host as string])),
+    [projects]
   )
 
   const openProject = useMemo(
-    () => (openSlug ? roster.find((p) => p.slug === openSlug) ?? null : null),
-    [openSlug]
+    () => (openSlug ? projects.find((p) => p.slug === openSlug) ?? null : null),
+    [openSlug, projects]
   )
 
   // Which rank owns the backdrop. A narrow band around the viewport's middle means exactly
@@ -145,13 +151,13 @@ export const App = () => {
   return (
     <>
       <Backdrop active={activeTier} />
-      <Hero count={roster.length} />
+      <Hero count={projects.length} />
       <main className="board">
         {TIERS.map((tier) => (
           <TierSection
             key={tier}
             tier={tier}
-            projects={roster.filter((p) => p.tier === tier)}
+            projects={projects.filter((p) => p.tier === tier)}
             hostBySlug={hostBySlug}
             artBySlug={artBySlug}
             onOpen={setOpenSlug}

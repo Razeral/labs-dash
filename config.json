@@ -1,0 +1,7 @@
+{
+  "armory": { "omit": true },
+  "m365-stg": { "omit": true },
+  "oauth-prd": { "omit": true },
+  "slack-prd": { "omit": true },
+  "slack-stg": { "omit": true }
+}
