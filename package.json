@@ -10,7 +10,10 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "roster": "node scripts/roster.mjs",
-    "roster:deploy": "node scripts/roster.mjs --deploy"
+    "roster:deploy": "node scripts/roster.mjs --deploy",
+    "drift": "node scripts/drift-check.mjs",
+    "auto-roster": "node scripts/auto-roster.mjs",
+    "auto-roster:deploy": "node scripts/auto-roster.mjs --deploy"
   },
   "dependencies": {
     "react": "^18.3.1",
