@@ -15,10 +15,11 @@ import { readdirSync, statSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { formatRoster } from './format-roster.mjs'
 
-const ROOT = process.env.TERRA_ROOT || '/Users/aip/Code/Terra/projects'
+const ROOT = process.env.TERRA_ROOT || ''
 const FILE = 'src/data/projects.json'
 const NOW = new Date()
 const DEPLOY = process.argv.includes('--deploy')
+const HAS_DISK = ROOT && (() => { try { readdirSync(ROOT); return true } catch { return false } })()
 
 const c = {
   red: (s) => `\x1b[31m${s}\x1b[0m`,
@@ -67,18 +68,24 @@ try {
   console.log(c.amber('  Could not query CloudFront — using existing host data only'))
 }
 
-// ---- Scan disk repos ----
+// ---- Scan disk repos (skip if not available, e.g. in CI) ----
 const diskRepos = new Set()
-for (const slug of readdirSync(ROOT).sort()) {
-  if (slug === 'labs-dash') continue
-  try {
-    if (!statSync(join(ROOT, slug, '.git')).isDirectory()) continue
-  } catch { continue }
-  diskRepos.add(slug)
+if (HAS_DISK) {
+  for (const slug of readdirSync(ROOT).sort()) {
+    if (slug === 'labs-dash') continue
+    try {
+      if (!statSync(join(ROOT, slug, '.git')).isDirectory()) continue
+    } catch { continue }
+    diskRepos.add(slug)
+  }
+  console.log(c.dim(`  Found ${diskRepos.size} repos on disk`))
+} else {
+  console.log(c.dim('  No TERRA_ROOT set or not accessible — skipping disk scan (CI mode)'))
 }
 
 // ---- Compute age for tier seeding ----
 const ageDays = (repoPath) => {
+  if (!HAS_DISK) return 0 // assume fresh in CI
   try {
     const d = execSync(`git -C ${repoPath} log -1 --format=%cI`, {
       encoding: 'utf8', timeout: 5000, stdio: ['pipe', 'pipe', 'ignore']
@@ -94,6 +101,7 @@ const seedTier = (slug, age, hosted) => {
 
 // ---- Read blurb from ABOUT.md or README.md ----
 const readBlurb = (slug) => {
+  if (!HAS_DISK) return ''
   for (const fname of ['ABOUT.md', 'README.md']) {
     try {
       const content = readFileSync(join(ROOT, slug, fname), 'utf8')
@@ -130,8 +138,8 @@ for (const [slug, prev] of prevBySlug) {
     }
   }
 
-  // If repo is gone and not already fallen, mark as fallen
-  if (!onDisk && slug !== 'analytics' && prev.tier !== 'fallen' && prev.tier !== 'ascended') {
+  // If repo is gone and not already fallen, mark as fallen (only when disk is available)
+  if (HAS_DISK && !onDisk && slug !== 'analytics' && prev.tier !== 'fallen' && prev.tier !== 'ascended') {
     entry.tier = 'fallen'
     delete entry.host
     log(`${c.amber('↓')} ${slug}: repo gone, ${prev.tier} → fallen`)
@@ -156,10 +164,12 @@ for (const [slug, prev] of prevBySlug) {
   updated.set(slug, entry)
 }
 
-// Add new repos not yet in roster
-for (const slug of diskRepos) {
+// Add new repos not yet in roster (from CloudFront in CI, from disk locally)
+const newSlugs = HAS_DISK ? diskRepos : new Set(cfHosts.keys())
+for (const slug of newSlugs) {
   if (updated.has(slug)) continue
-  const age = ageDays(join(ROOT, slug))
+  if (slug === 'analytics') continue // special entry, not a repo
+  const age = HAS_DISK ? ageDays(join(ROOT, slug)) : 0
   const cfHost = cfHosts.get(slug)
   const blurb = readBlurb(slug)
 
