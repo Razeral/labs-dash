@@ -246,8 +246,8 @@ for (const [slug, prev] of prevBySlug) {
     }
   }
 
-  // Mark deleted repos as fallen (only with disk access)
-  if (HAS_DISK && !onDisk && slug !== 'analytics' && prev.tier !== 'fallen' && prev.tier !== 'ascended') {
+  // Mark deleted repos as fallen (only with disk access, and not if still hosted)
+  if (HAS_DISK && !onDisk && !cfHost && slug !== 'analytics' && prev.tier !== 'fallen' && prev.tier !== 'ascended') {
     entry.tier = 'fallen'
     delete entry.host
     log(`${c.amber('↓')} ${slug}: repo gone, ${prev.tier} → fallen`)
