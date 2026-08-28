@@ -3,6 +3,8 @@
     "armory",
     "bootstrap-mcp",
     "candidate-code-review",
+    "compliance-api",
+    "depot",
     "fueler",
     "giantrobotslabs",
     "ltm-src",
@@ -221,7 +223,8 @@
       "blurb": "Dashboard over the ChatGPT Enterprise Compliance API — inventory, logs, run traces",
       "absorbedInto": {
         "name": "Aperture"
-      }
+      },
+      "host": "https://compliance-api.labs.ai.tech.gov.sg"
     },
     {
       "name": "Devenv Gateway",
