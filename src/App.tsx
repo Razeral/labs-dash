@@ -20,17 +20,14 @@ export const App = () => {
     loadLiveRoster().then(setProjects).catch(() => { /* use base roster */ })
   }, [])
 
-  // Art belongs to every rank that still has something to show. A living project needs a
-  // host — art is for something you can go and see. The ascended, dormant and risen get art
-  // without one: the ascended because they graduated, the dormant because they are still
-  // standing, the risen because something is still running in there. Only The Fallen stays
-  // bare, and that is the point of it — a tombstone with a scene would stop reading as a
-  // tombstone. The art itself carries the rank's mood, so the ranks stay distinguishable
-  // without withholding it.
+  // Art belongs to every rank except The Fallen. A tombstone with a scene would stop
+  // reading as a tombstone — absence is the signal there. Everything else gets its art
+  // regardless of whether it has a live host; the ⌀ UNSUMMONED label already tells users
+  // there's nowhere to click.
   const artBySlug = useMemo(
     () => Object.fromEntries(
       projects
-        .filter((p) => p.tier !== 'fallen' && (p.tier !== 'living' || p.host) && cardArt[p.slug])
+        .filter((p) => p.tier !== 'fallen' && cardArt[p.slug])
         .map((p) => [p.slug, cardArt[p.slug]])
     ),
     [projects]
