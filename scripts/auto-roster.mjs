@@ -21,6 +21,12 @@ const CARDS_DIR = 'src/assets/cards'
 const NOW = new Date()
 const DEPLOY = process.argv.includes('--deploy')
 const HAS_DISK = ROOT && (() => { try { readdirSync(ROOT); return true } catch { return false } })()
+// Projects that must NEVER reach the roster, not even as an omitted entry (an omitted
+// entry is one edit away from being shown). The disk scan admits any projects/<slug>/ that
+// is a git repo, so a project becomes eligible the moment it gains its own .git — this list
+// is the only thing that keeps one out. 'labs-dash' is this repo itself; the others are
+// private by request.
+const NEVER_LIST = new Set(['labs-dash', 'team-tracker'])
 const CARD_WIDTH = 720
 const CARD_QUALITY = 60
 
@@ -166,7 +172,7 @@ for (const [slug, og] of ogData) {
 const diskRepos = new Set()
 if (HAS_DISK) {
   for (const slug of readdirSync(ROOT).sort()) {
-    if (slug === 'labs-dash') continue
+    if (NEVER_LIST.has(slug)) continue
     try {
       if (!statSync(join(ROOT, slug, '.git')).isDirectory()) continue
     } catch { continue }
